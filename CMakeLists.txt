@@ -16,22 +16,13 @@ ament_target_dependencies(${PROJECT_NAME} "rclcpp" "rclcpp_action")
 target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
+# A library to detect a realtime kernel and set thread priority, if one is found
+add_library(thread_priority SHARED src/thread_priority.cpp)
+target_include_directories(thread_priority PUBLIC include)
+ament_target_dependencies(thread_priority "rclcpp" "rclcpp_action")
+
 # Unit Tests
 if(BUILD_TESTING)
-  find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_cpplint REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
-  find_package(ament_cmake_uncrustify REQUIRED)
-  ament_cppcheck(LANGUAGE c++)
-  ament_cpplint()
-  ament_lint_cmake()
-  ament_uncrustify(LANGUAGE C++)
-  # Renable the below once we have a global variable
-  # supporting the language feature for ament_uncrustify
-  # find_package(ament_lint_auto REQUIRED)
-  # set(ament_cmake_copyright_FOUND TRUE)
-  # ament_lint_auto_find_test_dependencies()
-
   find_package(ament_cmake_gmock REQUIRED)
   find_package(test_msgs REQUIRED)
 
@@ -43,6 +34,11 @@ if(BUILD_TESTING)
 
   ament_add_gmock(realtime_clock_tests test/realtime_clock_tests.cpp)
   target_link_libraries(realtime_clock_tests ${PROJECT_NAME} ${GMOCK_MAIN_LIBRARIES})
+
+  ament_add_gmock(realtime_publisher_tests_non_polling
+                  test/realtime_publisher_non_polling.test test/realtime_publisher_tests_non_polling.cpp)
+  target_link_libraries(realtime_publisher_tests_non_polling ${PROJECT_NAME} ${test_msgs_LIBRARIES} ${GMOCK_MAIN_LIBRARIES})
+  target_include_directories(realtime_publisher_tests_non_polling PRIVATE ${test_msgs_INCLUDE_DIRS})
 
   ament_add_gmock(realtime_publisher_tests test/realtime_publisher.test test/realtime_publisher_tests.cpp)
   target_link_libraries(realtime_publisher_tests ${PROJECT_NAME} ${test_msgs_LIBRARIES} ${GMOCK_MAIN_LIBRARIES})
@@ -58,13 +54,13 @@ install(
   DIRECTORY include/
   DESTINATION include)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} thread_priority
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
+ament_export_libraries(${PROJECT_NAME} thread_priority)
 
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(rclcpp_action)
