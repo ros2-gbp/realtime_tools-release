@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Open Source Robotics Foundation, Inc.
+// Copyright (c) 2019, ros2_control development team
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,6 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#define NON_POLLING
+
 #include <gmock/gmock.h>
 
 #include <chrono>
@@ -42,7 +44,7 @@
 using StringMsg = test_msgs::msg::Strings;
 using realtime_tools::RealtimePublisher;
 
-TEST(RealtimePublisher, construct_destruct) { RealtimePublisher<StringMsg> rt_pub; }
+TEST(RealtimePublisherNonPolling, construct_destruct) { RealtimePublisher<StringMsg> rt_pub; }
 
 struct StringCallback
 {
@@ -56,7 +58,7 @@ struct StringCallback
   }
 };
 
-TEST(RealtimePublisher, rt_publish)
+TEST(RealtimePublisherNonPolling, rt_publish)
 {
   rclcpp::init(0, nullptr);
   const size_t ATTEMPTS = 10;
