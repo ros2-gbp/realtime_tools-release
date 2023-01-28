@@ -1,3 +1,26 @@
+## realtime_tools (rolling) - 2.5.0-1
+
+The packages in the `realtime_tools` repository were released into the `rolling` distro by running `/usr/local/bin/bloom-release --rosdistro rolling realtime_tools` on `Sat, 28 Jan 2023 18:01:06 -0000`
+
+The `realtime_tools` package was released.
+
+Version of package(s) in repository `realtime_tools`:
+
+- upstream repository: https://github.com/ros-controls/realtime_tools.git
+- release repository: https://github.com/ros2-gbp/realtime_tools-release.git
+- rosdistro version: `2.4.0-1`
+- old version: `2.4.0-1`
+- new version: `2.5.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.11.2`
+- catkin_pkg version: `0.5.2`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.9.0`
+- vcstools version: `0.1.42`
+
+
 ## realtime_tools (rolling) - 2.4.0-1
 
 The packages in the `realtime_tools` repository were released into the `rolling` distro by running `/usr/local/bin/bloom-release --rosdistro rolling realtime_tools --edit-track` on `Sat, 19 Nov 2022 09:19:07 -0000`
