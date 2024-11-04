@@ -1,4 +1,4 @@
-// Copyright (c) 2022, PickNik, Inc.
+// Copyright (c) 2024, Lennart Nachtigall
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -10,7 +10,7 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of the PickNik Inc. nor the names of its
+//    * Neither the name of the Willow Garage, Inc. nor the names of its
 //      contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
@@ -26,31 +26,41 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "realtime_tools/thread_priority.hpp"
+// Author: Lennart Nachtigall
 
-#include <sched.h>
+#include <gmock/gmock.h>
+#include <thread>
 
-#include <cstring>
-#include <fstream>
+#include <realtime_tools/realtime_helpers.hpp>
 
-namespace realtime_tools
+TEST(thread_priority, get_core_count)
 {
-bool has_realtime_kernel()
-{
-  std::ifstream realtime_file("/sys/kernel/realtime", std::ios::in);
-  bool has_realtime = false;
-  if (realtime_file.is_open()) {
-    realtime_file >> has_realtime;
-  }
-  return has_realtime;
+  const auto count = realtime_tools::get_number_of_available_processors();
+
+  EXPECT_EQ(count, std::thread::hardware_concurrency());
 }
 
-bool configure_sched_fifo(int priority)
+TEST(thread_priority, set_thread_affinity_valid)
 {
-  struct sched_param schedp;
-  memset(&schedp, 0, sizeof(schedp));
-  schedp.sched_priority = priority;
-  return !sched_setscheduler(0, SCHED_FIFO, &schedp);
+  // We should always have at least one core
+  EXPECT_TRUE(realtime_tools::set_thread_affinity(0, 0).first);
 }
 
-}  // namespace realtime_tools
+TEST(thread_priority, set_thread_affinity_invalid_too_many_cores)
+{
+  const auto count = realtime_tools::get_number_of_available_processors();
+  // We should always have at least one core
+  EXPECT_FALSE(realtime_tools::set_thread_affinity(0, count + 10).first);
+}
+
+TEST(thread_priority, set_thread_affinity_valid_reset)
+{
+  // Reset core affinity
+  EXPECT_TRUE(realtime_tools::set_thread_affinity(0, -1).first);
+}
+
+TEST(thread_priority, set_current_thread_affinity_valid)
+{
+  // We should always have at least one core
+  EXPECT_TRUE(realtime_tools::set_current_thread_affinity(0).first);
+}
