@@ -30,7 +30,15 @@
 #define REALTIME_TOOLS__REALTIME_HELPERS_HPP_
 
 #include <string>
+#include <thread>
 #include <utility>
+
+#ifdef _WIN32
+#include <windows.h>
+using NATIVE_THREAD_HANDLE = HANDLE;
+#else
+using NATIVE_THREAD_HANDLE = pthread_t;
+#endif
 
 namespace realtime_tools
 {
@@ -60,16 +68,27 @@ bool lock_memory(std::string & message);
 
 /**
  * Configure the caller thread affinity - Tell the scheduler to prefer a certain
- * core for the current thread.
+ * core for the given thread handle.
  * \note The threads created by the calling thread will inherit the affinity.
- * \param[in] pid the process id of the thread to set the affinity for. If 0 is
- * passed, the affinity is set for the calling thread.
+ * \param[in] thread the thread handle of the thread
  * \param[in] core the cpu number of the core. If a negative number is passed,
  * the affinity is reset to the default.
  * \returns a pair of a boolean indicating whether the operation succeeded or not
  * and a message describing the result of the operation
 */
-std::pair<bool, std::string> set_thread_affinity(int pid, int core);
+std::pair<bool, std::string> set_thread_affinity(NATIVE_THREAD_HANDLE thread, int core);
+
+/**
+ * Configure the caller thread affinity - Tell the scheduler to prefer a certain
+ * core for the given thread.
+ * \note The threads created by the calling thread will inherit the affinity.
+ * \param[in] thread the reference of the thread
+ * \param[in] core the cpu number of the core. If a negative number is passed,
+ * the affinity is reset to the default.
+ * \returns a pair of a boolean indicating whether the operation succeeded or not
+ * and a message describing the result of the operation
+*/
+std::pair<bool, std::string> set_thread_affinity(std::thread & thread, int core);
 
 /**
  * Configure the current thread affinity - Tell the scheduler to prefer a certain
@@ -88,7 +107,7 @@ std::pair<bool, std::string> set_current_thread_affinity(int core);
  * \ref https://stackoverflow.com/a/150971
  * \returns The number of processors currently online (available)
 */
-int get_number_of_available_processors();
+int64_t get_number_of_available_processors();
 
 }  // namespace realtime_tools
 
