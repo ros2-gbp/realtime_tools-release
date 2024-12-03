@@ -28,9 +28,7 @@
 
 #include "realtime_tools/realtime_helpers.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#else
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <sched.h>
 #include <sys/capability.h>
 #include <sys/mman.h>
@@ -68,9 +66,15 @@ bool configure_sched_fifo(int priority)
 
 bool lock_memory(std::string & message)
 {
+  const auto lock_result = lock_memory();
+  message = lock_result.second;
+  return lock_result.first;
+}
+
+std::pair<bool, std::string> lock_memory()
+{
 #ifdef _WIN32
-  message = "Memory locking is not supported on Windows.";
-  return false;
+  return {false, "Memory locking is not supported on Windows."};
 #else
   auto is_capable = [](cap_value_t v) -> bool {
     bool rc = false;
@@ -88,6 +92,7 @@ bool lock_memory(std::string & message)
     return rc;
   };
 
+  std::string message;
   if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
     if (!is_capable(CAP_IPC_LOCK)) {
       message = "No proper privileges to lock the memory!";
@@ -107,42 +112,42 @@ bool lock_memory(std::string & message)
     } else {
       message = "Unknown error occurred!";
     }
-    return false;
+    return {false, message};
   } else {
     message = "Memory locked successfully!";
-    return true;
+    return {true, message};
   }
 #endif
 }
 
-std::pair<bool, std::string> set_thread_affinity(int pid, int core)
+std::pair<bool, std::string> set_thread_affinity(
+  NATIVE_THREAD_HANDLE thread, const std::vector<int> & cores)
 {
   std::string message;
 #ifdef _WIN32
   message = "Thread affinity is not supported on Windows.";
   return std::make_pair(false, message);
 #else
-  auto set_affinity_result_message = [](int result, std::string & message) -> bool {
+  auto set_affinity_result_message = [](int result, std::string & msg) -> bool {
     if (result == 0) {
-      message = "Thread affinity set successfully!";
+      msg = "Thread affinity set successfully!";
       return true;
     }
     switch (errno) {
       case EFAULT:
-        message = "Call of sched_setaffinity with invalid cpuset!";
+        msg = "Call of sched_setaffinity with invalid cpuset!";
         break;
       case EINVAL:
-        message = "Call of sched_setaffinity with an invalid cpu core!";
+        msg = "Call of sched_setaffinity with an invalid cpu core!";
         break;
       case ESRCH:
-        message =
-          "Call of sched_setaffinity with a thread id/process id that is invalid or not found!";
+        msg = "Call of sched_setaffinity with a thread id/process id that is invalid or not found!";
         break;
       case EPERM:
-        message = "Call of sched_setaffinity with insufficient privileges!";
+        msg = "Call of sched_setaffinity with insufficient privileges!";
         break;
       default:
-        message = "Unknown error code: " + std::string(strerror(errno));
+        msg = "Unknown error code: " + std::string(strerror(errno));
     }
     return false;
   };
@@ -152,27 +157,35 @@ std::pair<bool, std::string> set_thread_affinity(int pid, int core)
   // Obtain available processors
   const auto number_of_cores = get_number_of_available_processors();
 
+  bool valid_cpu_set = true;
   // Reset affinity by setting it to all cores
-  if (core < 0) {
+  if (cores.empty()) {
     for (auto i = 0; i < number_of_cores; i++) {
       CPU_SET(i, &cpuset);
     }
-    // And actually tell the schedular to set the affinity of the thread of respective pid
-    const auto result =
-      set_affinity_result_message(sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset), message);
-    return std::make_pair(result, message);
+  } else {
+    for (const auto core : cores) {
+      if (core < 0 || core >= number_of_cores) {
+        valid_cpu_set = false;
+        break;
+      }
+      CPU_SET(core, &cpuset);
+    }
   }
 
-  if (core < number_of_cores) {
-    // Set the passed core to the cpu set
-    CPU_SET(core, &cpuset);
+  if (valid_cpu_set) {
     // And actually tell the schedular to set the affinity of the thread of respective pid
-    const auto result =
-      set_affinity_result_message(sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset), message);
+    const auto result = set_affinity_result_message(
+      pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset), message);
     return std::make_pair(result, message);
   }
+  // create a string from the core numbers
+  std::string core_numbers;
+  for (const auto core : cores) {
+    core_numbers += std::to_string(core) + " ";
+  }
   // Invalid core number passed
-  message = "Invalid core number : '" + std::to_string(core) + "' passed! The system has " +
+  message = "Invalid core numbers : ['" + core_numbers + "'] passed! The system has " +
             std::to_string(number_of_cores) +
             " cores. Parsed core number should be between 0 and " +
             std::to_string(number_of_cores - 1);
@@ -180,17 +193,45 @@ std::pair<bool, std::string> set_thread_affinity(int pid, int core)
 #endif
 }
 
-std::pair<bool, std::string> set_current_thread_affinity(int core)
+std::pair<bool, std::string> set_thread_affinity(NATIVE_THREAD_HANDLE thread, int core)
 {
-  return set_thread_affinity(0, core);
+  const std::vector<int> affinity_cores = core < 0 ? std::vector<int>() : std::vector<int>{core};
+  return set_thread_affinity(thread, affinity_cores);
 }
 
-int get_number_of_available_processors()
+std::pair<bool, std::string> set_thread_affinity(std::thread & thread, int core)
+{
+  if (!thread.joinable()) {
+    return std::make_pair(
+      false, "Unable to set the thread affinity, as the thread is not joinable!");
+  }
+  return set_thread_affinity(thread.native_handle(), core);
+}
+
+std::pair<bool, std::string> set_current_thread_affinity(int core)
+{
+#ifdef _WIN32
+  return set_thread_affinity(GetCurrentThread(), core);
+#else
+  return set_thread_affinity(pthread_self(), core);
+#endif
+}
+
+std::pair<bool, std::string> set_current_thread_affinity(const std::vector<int> & cores)
+{
+#ifdef _WIN32
+  return set_thread_affinity(GetCurrentThread(), cores);
+#else
+  return set_thread_affinity(pthread_self(), cores);
+#endif
+}
+
+int64_t get_number_of_available_processors()
 {
 #ifdef _WIN32
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
-  return sysinfo.dwNumberOfProcessors;
+  return static_cast<int64_t>(sysinfo.dwNumberOfProcessors);
 #else
   return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
