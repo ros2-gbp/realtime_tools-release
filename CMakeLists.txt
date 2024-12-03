@@ -6,18 +6,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
   -Werror=return-type -Werror=shadow -Werror=format)
 endif()
 
-if(WIN32)
-  add_compile_definitions(
-    # For math constants
-    _USE_MATH_DEFINES
-    # Minimize Windows namespace collision
-    NOMINMAX
-    WIN32_LEAN_AND_MEAN
-  )
-  # set the same behavior for windows as it is on linux
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
-
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   rclcpp_action
@@ -70,6 +58,9 @@ if(BUILD_TESTING)
 
   ament_add_gmock(realtime_box_tests test/realtime_box_tests.cpp)
   target_link_libraries(realtime_box_tests realtime_tools)
+
+  ament_add_gmock(realtime_box_best_effort_tests test/realtime_box_best_effort_tests.cpp)
+  target_link_libraries(realtime_box_best_effort_tests realtime_tools)
 
   ament_add_gmock(realtime_buffer_tests test/realtime_buffer_tests.cpp)
   target_link_libraries(realtime_buffer_tests realtime_tools)

@@ -32,7 +32,7 @@
 #include <thread>
 
 #include "rclcpp/utilities.hpp"
-#include "realtime_tools/realtime_clock.hpp"
+#include "realtime_tools/realtime_clock.h"
 
 using realtime_tools::RealtimeClock;
 
