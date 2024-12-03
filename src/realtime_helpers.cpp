@@ -28,9 +28,7 @@
 
 #include "realtime_tools/realtime_helpers.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#else
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <sched.h>
 #include <sys/capability.h>
 #include <sys/mman.h>
@@ -115,34 +113,33 @@ bool lock_memory(std::string & message)
 #endif
 }
 
-std::pair<bool, std::string> set_thread_affinity(int pid, int core)
+std::pair<bool, std::string> set_thread_affinity(NATIVE_THREAD_HANDLE thread, int core)
 {
   std::string message;
 #ifdef _WIN32
   message = "Thread affinity is not supported on Windows.";
   return std::make_pair(false, message);
 #else
-  auto set_affinity_result_message = [](int result, std::string & message) -> bool {
+  auto set_affinity_result_message = [](int result, std::string & msg) -> bool {
     if (result == 0) {
-      message = "Thread affinity set successfully!";
+      msg = "Thread affinity set successfully!";
       return true;
     }
     switch (errno) {
       case EFAULT:
-        message = "Call of sched_setaffinity with invalid cpuset!";
+        msg = "Call of sched_setaffinity with invalid cpuset!";
         break;
       case EINVAL:
-        message = "Call of sched_setaffinity with an invalid cpu core!";
+        msg = "Call of sched_setaffinity with an invalid cpu core!";
         break;
       case ESRCH:
-        message =
-          "Call of sched_setaffinity with a thread id/process id that is invalid or not found!";
+        msg = "Call of sched_setaffinity with a thread id/process id that is invalid or not found!";
         break;
       case EPERM:
-        message = "Call of sched_setaffinity with insufficient privileges!";
+        msg = "Call of sched_setaffinity with insufficient privileges!";
         break;
       default:
-        message = "Unknown error code: " + std::string(strerror(errno));
+        msg = "Unknown error code: " + std::string(strerror(errno));
     }
     return false;
   };
@@ -158,8 +155,8 @@ std::pair<bool, std::string> set_thread_affinity(int pid, int core)
       CPU_SET(i, &cpuset);
     }
     // And actually tell the schedular to set the affinity of the thread of respective pid
-    const auto result =
-      set_affinity_result_message(sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset), message);
+    const auto result = set_affinity_result_message(
+      pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset), message);
     return std::make_pair(result, message);
   }
 
@@ -167,8 +164,8 @@ std::pair<bool, std::string> set_thread_affinity(int pid, int core)
     // Set the passed core to the cpu set
     CPU_SET(core, &cpuset);
     // And actually tell the schedular to set the affinity of the thread of respective pid
-    const auto result =
-      set_affinity_result_message(sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset), message);
+    const auto result = set_affinity_result_message(
+      pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset), message);
     return std::make_pair(result, message);
   }
   // Invalid core number passed
@@ -180,17 +177,30 @@ std::pair<bool, std::string> set_thread_affinity(int pid, int core)
 #endif
 }
 
-std::pair<bool, std::string> set_current_thread_affinity(int core)
+std::pair<bool, std::string> set_thread_affinity(std::thread & thread, int core)
 {
-  return set_thread_affinity(0, core);
+  if (!thread.joinable()) {
+    return std::make_pair(
+      false, "Unable to set the thread affinity, as the thread is not joinable!");
+  }
+  return set_thread_affinity(thread.native_handle(), core);
 }
 
-int get_number_of_available_processors()
+std::pair<bool, std::string> set_current_thread_affinity(int core)
+{
+#ifdef _WIN32
+  return set_thread_affinity(GetCurrentThread(), core);
+#else
+  return set_thread_affinity(pthread_self(), core);
+#endif
+}
+
+int64_t get_number_of_available_processors()
 {
 #ifdef _WIN32
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
-  return sysinfo.dwNumberOfProcessors;
+  return static_cast<int64_t>(sysinfo.dwNumberOfProcessors);
 #else
   return sysconf(_SC_NPROCESSORS_ONLN);
 #endif
