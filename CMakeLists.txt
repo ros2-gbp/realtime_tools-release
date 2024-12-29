@@ -71,9 +71,6 @@ if(BUILD_TESTING)
   ament_add_gmock(realtime_box_tests test/realtime_box_tests.cpp)
   target_link_libraries(realtime_box_tests realtime_tools)
 
-  ament_add_gmock(realtime_box_best_effort_tests test/realtime_box_best_effort_tests.cpp)
-  target_link_libraries(realtime_box_best_effort_tests realtime_tools)
-
   ament_add_gmock(realtime_buffer_tests test/realtime_buffer_tests.cpp)
   target_link_libraries(realtime_buffer_tests realtime_tools)
 
@@ -101,6 +98,11 @@ if(BUILD_TESTING)
   ament_add_gmock(test_async_function_handler test/test_async_function_handler.cpp)
   target_link_libraries(test_async_function_handler realtime_tools thread_priority)
   ament_target_dependencies(test_async_function_handler lifecycle_msgs rclcpp_lifecycle)
+
+  if(NOT WIN32)
+    ament_add_gmock(realtime_mutex_tests test/realtime_mutex_tests.cpp)
+    target_link_libraries(realtime_mutex_tests realtime_tools)
+  endif()
 endif()
 
 # Install

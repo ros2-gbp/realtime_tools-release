@@ -18,7 +18,12 @@
 #include "realtime_tools/realtime_publisher.hpp"
 
 // Deprecation notice
+#ifdef _WIN32
 #pragma message( \
   "This header include is deprecated. Please update your code to use 'realtime_publisher.hpp' header.")  //NOLINT
+#else
+#warning \
+  "This header include is deprecated. Please update your code to use 'realtime_publisher.hpp' header." //NOLINT
+#endif
 
 #endif  // REALTIME_TOOLS__REALTIME_PUBLISHER_H_

@@ -2,30 +2,40 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.10.0 (2024-12-14)
--------------------
-* sleep after starting thread to fix flaky tests (backport `#235 <https://github.com/ros-controls/realtime_tools/issues/235>`_) (`#237 <https://github.com/ros-controls/realtime_tools/issues/237>`_)
-* Fix the badges in the readme (backport `#234 <https://github.com/ros-controls/realtime_tools/issues/234>`_) (`#236 <https://github.com/ros-controls/realtime_tools/issues/236>`_)
-* Remove duplicate wf (backport `#230 <https://github.com/ros-controls/realtime_tools/issues/230>`_) (`#231 <https://github.com/ros-controls/realtime_tools/issues/231>`_)
-* Adapt API style of lock_memory to match the one of the other functions (backport `#209 <https://github.com/ros-controls/realtime_tools/issues/209>`_) (`#229 <https://github.com/ros-controls/realtime_tools/issues/229>`_)
-* [Humble] Move the header files to `.hpp` extension (`#206 <https://github.com/ros-controls/realtime_tools/issues/206>`_) - No deprecation notice (`#225 <https://github.com/ros-controls/realtime_tools/issues/225>`_)
-* Add support to parse multiple cores for setting CPU affinity (backport `#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_) (`#223 <https://github.com/ros-controls/realtime_tools/issues/223>`_)
-* remove unused state\_ field (backport `#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_) (`#218 <https://github.com/ros-controls/realtime_tools/issues/218>`_)
-* Changes after branching humble (backport `#217 <https://github.com/ros-controls/realtime_tools/issues/217>`_) (`#224 <https://github.com/ros-controls/realtime_tools/issues/224>`_)
-* Add downstream build CI job (backport `#201 <https://github.com/ros-controls/realtime_tools/issues/201>`_) (`#222 <https://github.com/ros-controls/realtime_tools/issues/222>`_)
-* Use windows CI build (backport `#204 <https://github.com/ros-controls/realtime_tools/issues/204>`_) (`#221 <https://github.com/ros-controls/realtime_tools/issues/221>`_)
-* Add job for clang build (backport `#207 <https://github.com/ros-controls/realtime_tools/issues/207>`_) (`#220 <https://github.com/ros-controls/realtime_tools/issues/220>`_)
-* Bump version of pre-commit hooks (backport `#213 <https://github.com/ros-controls/realtime_tools/issues/213>`_) (`#219 <https://github.com/ros-controls/realtime_tools/issues/219>`_)
-* Contributors: Sai Kishor Kothakota, Lennart Nachtigall, Christoph Fröhlich
-
-2.9.0 (2024-12-03)
+3.1.0 (2024-12-29)
 ------------------
+* Fix ref for scheduled build (`#248 <https://github.com/ros-controls/realtime_tools/issues/248>`_)
+* Add realtime priority inheritance mutexes (`#197 <https://github.com/ros-controls/realtime_tools/issues/197>`_)
+* Deprecate RealtimeClock class (`#244 <https://github.com/ros-controls/realtime_tools/issues/244>`_)
+* Remove wrong comments (`#240 <https://github.com/ros-controls/realtime_tools/issues/240>`_)
+* Add `get_thread` method to `RealtimePublisher` (`#228 <https://github.com/ros-controls/realtime_tools/issues/228>`_)
+* sleep after starting thread to fix flaky tests (`#235 <https://github.com/ros-controls/realtime_tools/issues/235>`_)
+* Fix the badges in the readme (`#234 <https://github.com/ros-controls/realtime_tools/issues/234>`_)
+* First step towards modernizing the rt publisher (`#210 <https://github.com/ros-controls/realtime_tools/issues/210>`_)
+* Add missing change to .hpp for realtime_clock (`#227 <https://github.com/ros-controls/realtime_tools/issues/227>`_)
+* Remove duplicate downstream build workflow (`#230 <https://github.com/ros-controls/realtime_tools/issues/230>`_)
+* Changes after branching humble (`#217 <https://github.com/ros-controls/realtime_tools/issues/217>`_)
+* CI downstream build (`#214 <https://github.com/ros-controls/realtime_tools/issues/214>`_)
+* Contributors: Christoph Fröhlich, Lennart Nachtigall, Patrick Roncagliolo, Sai Kishor Kothakota
+
+3.0.0 (2024-12-03)
+------------------
+* remove unused state\_ field (`#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_)
+* Bump version of pre-commit hooks (`#213 <https://github.com/ros-controls/realtime_tools/issues/213>`_)
+* Add job for clang build (`#207 <https://github.com/ros-controls/realtime_tools/issues/207>`_)
+* Add support to parse multiple cores for setting CPU affinity (`#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_)
+* Adapt API style of lock_memory to match the one of the other functions (`#209 <https://github.com/ros-controls/realtime_tools/issues/209>`_)
+* Move the header files to `.hpp` extension (`#206 <https://github.com/ros-controls/realtime_tools/issues/206>`_)
+* Use windows CI build (`#204 <https://github.com/ros-controls/realtime_tools/issues/204>`_)
+* Add downstream build CI job (`#201 <https://github.com/ros-controls/realtime_tools/issues/201>`_)
+* Fix RealtimeBox broken API + `realtime_box_best_effort.h` proper deprecation (`#202 <https://github.com/ros-controls/realtime_tools/issues/202>`_)
+* Replace existing RealtimeBox implementation with RealtimeBoxBestEffort implementation (`#146 <https://github.com/ros-controls/realtime_tools/issues/146>`_)
 * Overloading the set_thread_affinity method for Windows compatibility (`#193 <https://github.com/ros-controls/realtime_tools/issues/193>`_)
 * Remove iron workflows and update readme (`#184 <https://github.com/ros-controls/realtime_tools/issues/184>`_)
 * Add method to get the current callback time and period (`#192 <https://github.com/ros-controls/realtime_tools/issues/192>`_)
 * Use pthread_setaffinity_np for setting affinity rather than sched_setaffinity (`#190 <https://github.com/ros-controls/realtime_tools/issues/190>`_)
 * Add the same compile flags as with ros2_controllers and fix errors (`#185 <https://github.com/ros-controls/realtime_tools/issues/185>`_)
-* Contributors: Christoph Fröhlich, Gilmar Correia, Sai Kishor Kothakota
+* Contributors: Christoph Fröhlich, Gilmar Correia, Lennart Nachtigall, Sai Kishor Kothakota, github-actions[bot]
 
 2.8.1 (2024-11-05)
 ------------------

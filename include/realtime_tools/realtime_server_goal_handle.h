@@ -18,7 +18,12 @@
 #include "realtime_tools/realtime_server_goal_handle.hpp"
 
 // Deprecation notice
+#ifdef _WIN32
 #pragma message( \
   "This header include is deprecated. Please update your code to use 'realtime_server_goal_handle.hpp' header.")  //NOLINT
+#else
+#warning \
+  "This header include is deprecated. Please update your code to use 'realtime_server_goal_handle.hpp' header." //NOLINT
+#endif
 
 #endif  // REALTIME_TOOLS__REALTIME_SERVER_GOAL_HANDLE_H_
