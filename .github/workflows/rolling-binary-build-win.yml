@@ -32,4 +32,3 @@ jobs:
       ros_distro: jazzy
       ref_for_scheduled_build: master
       os_name: windows-2019
-      install_boost: true
