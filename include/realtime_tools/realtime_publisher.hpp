@@ -99,7 +99,9 @@ public:
   void stop()
   {
     keep_running_ = false;
+#ifdef NON_POLLING
     updated_cond_.notify_one();  // So the publishing loop can exit
+#endif
   }
 
   /**  \brief Try to get the data lock from realtime
@@ -110,8 +112,13 @@ public:
    */
   bool trylock()
   {
-    if (turn_.load(std::memory_order_acquire) == State::NON_REALTIME && msg_mutex_.try_lock()) {
-      return true;
+    if (msg_mutex_.try_lock()) {
+      if (turn_ == State::REALTIME) {
+        return true;
+      } else {
+        msg_mutex_.unlock();
+        return false;
+      }
     } else {
       return false;
     }
@@ -142,7 +149,7 @@ public:
    */
   void unlockAndPublish()
   {
-    turn_.store(State::REALTIME, std::memory_order_release);
+    turn_ = State::NON_REALTIME;
     unlock();
   }
 
@@ -152,7 +159,17 @@ public:
    * attempt to get unique access to the msg_ variable. Trylock returns
    * true if the lock was acquired, and false if it failed to get the lock.
    */
-  void lock() { msg_mutex_.lock(); }
+  void lock()
+  {
+#ifdef NON_POLLING
+    msg_mutex_.lock();
+#else
+    // never actually block on the lock
+    while (!msg_mutex_.try_lock()) {
+      std::this_thread::sleep_for(std::chrono::microseconds(200));
+    }
+#endif
+  }
 
   /**  \brief Unlocks the data without publishing anything
    *
@@ -160,12 +177,10 @@ public:
   void unlock()
   {
     msg_mutex_.unlock();
+#ifdef NON_POLLING
     updated_cond_.notify_one();
+#endif
   }
-
-  std::thread & get_thread() { return thread_; }
-
-  const std::thread & get_thread() const { return thread_; }
 
 private:
   // non-copyable
@@ -177,23 +192,37 @@ private:
   void publishingLoop()
   {
     is_running_ = true;
-    turn_.store(State::NON_REALTIME, std::memory_order_release);
+    turn_ = State::REALTIME;
 
     while (keep_running_) {
       MessageT outgoing;
 
-      {
-        // Locks msg_ and copies it to outgoing
-        std::unique_lock<std::mutex> lock_(msg_mutex_);
-        updated_cond_.wait(lock_, [&] { return turn_ == State::REALTIME || !keep_running_; });
-        outgoing = msg_;
+      // Locks msg_ and copies it
+
+#ifdef NON_POLLING
+      std::unique_lock<std::mutex> lock_(msg_mutex_);
+#else
+      lock();
+#endif
+
+      while (turn_ != State::NON_REALTIME && keep_running_) {
+#ifdef NON_POLLING
+        updated_cond_.wait(lock_);
+#else
+        unlock();
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        lock();
+#endif
       }
+      outgoing = msg_;
+      turn_ = State::REALTIME;
+
+      unlock();
 
       // Sends the outgoing message
       if (keep_running_) {
         publisher_->publish(outgoing);
       }
-      turn_.store(State::NON_REALTIME, std::memory_order_release);
     }
     is_running_ = false;
   }
@@ -205,7 +234,10 @@ private:
   std::thread thread_;
 
   std::mutex msg_mutex_;  // Protects msg_
+
+#ifdef NON_POLLING
   std::condition_variable updated_cond_;
+#endif
 
   enum class State : int { REALTIME, NON_REALTIME, LOOP_NOT_STARTED };
   std::atomic<State> turn_;  // Who's turn is it to use msg_?
