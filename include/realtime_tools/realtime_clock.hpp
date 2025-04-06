@@ -43,7 +43,7 @@
 
 namespace realtime_tools
 {
-class [[deprecated("Use rclcpp::Clock or std::chrono::steady_clock instead")]] RealtimeClock
+class RealtimeClock
 {
 public:
   /**

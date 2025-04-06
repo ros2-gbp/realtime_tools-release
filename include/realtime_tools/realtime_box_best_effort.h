@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Open Source Robotics Foundation, Inc.
+// Copyright (c) 2024, Lennart Nachtigall
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -10,7 +10,7 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of the Open Source Robotics Foundation, Inc. nor the names of its
+//    * Neither the name of the Willow Garage, Inc. nor the names of its
 //      contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
@@ -26,42 +26,15 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <gmock/gmock.h>
+// Author: Lennart Nachtigall
 
-#include <chrono>
-#include <thread>
+#ifndef REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_
+#define REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_
 
-#include "rclcpp/utilities.hpp"
-#include "realtime_tools/realtime_clock.hpp"
+#include "realtime_tools/realtime_box_best_effort.hpp"
 
-// Disable deprecated warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+// Deprecation notice
+#pragma message( \
+  "This header include is deprecated. Please update your code to use 'realtime_box_best_effort.hpp' header.")  //NOLINT
 
-using realtime_tools::RealtimeClock;
-
-TEST(RealtimeClock, get_system_time)
-{
-  // initialize the global context
-  rclcpp::init(0, nullptr);
-  const int ATTEMPTS = 10;
-  const std::chrono::milliseconds DELAY(1);
-
-  rclcpp::Clock::SharedPtr clock(new rclcpp::Clock());
-  {
-    RealtimeClock rt_clock(clock);
-    // Wait for time to be available
-    rclcpp::Time last_rt_time;
-    for (int i = 0; i < ATTEMPTS && rclcpp::Time() == last_rt_time; ++i) {
-      std::this_thread::sleep_for(DELAY);
-      last_rt_time = rt_clock.now(rclcpp::Time());
-    }
-    ASSERT_NE(rclcpp::Time(), last_rt_time);
-
-    // This test assumes system time will not jump backwards during it
-    EXPECT_GT(rt_clock.now(last_rt_time), last_rt_time);
-  }
-  rclcpp::shutdown();
-}
-
-#pragma GCC diagnostic pop
+#endif  // REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_

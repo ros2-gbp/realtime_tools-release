@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(realtime_tools LANGUAGES CXX)
 
-find_package(ros2_control_cmake REQUIRED)
-set_compiler_options()
+if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
+  add_compile_options(-Wall -Wextra -Wpedantic -Werror=conversion -Werror=unused-but-set-variable
+  -Werror=return-type -Werror=shadow -Werror=format)
+endif()
 
 if(WIN32)
   add_compile_definitions(
@@ -13,7 +15,7 @@ if(WIN32)
     WIN32_LEAN_AND_MEAN
   )
   # set the same behavior for windows as it is on linux
-  export_windows_symbols()
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
@@ -76,6 +78,9 @@ if(BUILD_TESTING)
 
   ament_add_gmock(realtime_box_tests test/realtime_box_tests.cpp)
   target_link_libraries(realtime_box_tests realtime_tools)
+
+  ament_add_gmock(realtime_box_best_effort_tests test/realtime_box_best_effort_tests.cpp)
+  target_link_libraries(realtime_box_best_effort_tests realtime_tools)
 
   ament_add_gmock(realtime_buffer_tests test/realtime_buffer_tests.cpp)
   target_link_libraries(realtime_buffer_tests realtime_tools)
