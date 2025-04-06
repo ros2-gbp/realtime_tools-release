@@ -1,6 +1,6 @@
 <package format="2">
   <name>realtime_tools</name>
-  <version>4.1.0</version>
+  <version>4.2.0</version>
   <description>Contains a set of tools that can be used from a hard
     realtime thread, without breaking the realtime behavior.</description>
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
@@ -18,6 +18,8 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <buildtool_export_depend>ament_cmake</buildtool_export_depend>
+
+  <build_depend>ros2_control_cmake</build_depend>
 
   <depend>libboost-dev</depend>
   <depend>rclcpp</depend>
