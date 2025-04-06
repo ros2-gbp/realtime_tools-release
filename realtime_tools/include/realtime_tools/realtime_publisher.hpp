@@ -65,14 +65,27 @@ public:
   /// The msg_ variable contains the data that will get published on the ROS topic.
   MessageT msg_;
 
-  /**  \brief Constructor for the realtime publisher
+  /**
+   * \brief Constructor for the realtime publisher
    *
-   * \param publisher the publisher to wrap
+   * Starts a dedicated thread for message publishing.
+   * The publishing thread runs the publishingLoop() function to handle message
+   * delivery in a non-realtime context.
+   *
+   * \param publisher the ROS publisher to wrap
    */
   explicit RealtimePublisher(PublisherSharedPtr publisher)
   : publisher_(publisher), is_running_(false), keep_running_(true), turn_(State::LOOP_NOT_STARTED)
   {
     thread_ = std::thread(&RealtimePublisher::publishingLoop, this);
+
+    // Wait for the thread to be ready before proceeding
+    // This is important to ensure that the thread is properly initialized and ready to handle
+    // messages before any other operations are performed on the RealtimePublisher instance.
+    while (!thread_.joinable() ||
+           turn_.load(std::memory_order_acquire) == State::LOOP_NOT_STARTED) {
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
+    }
   }
 
   [[deprecated(
@@ -95,40 +108,44 @@ public:
     }
   }
 
-  /// Stop the realtime publisher from sending out more ROS messages
+  /**
+   * \brief Stop the realtime publisher
+   *
+   * Signals the publishing thread to exit by setting keep_running_ to false
+   * and notifying the condition variable. This allows the publishing loop
+   * to break out of its wait state and exit cleanly.
+   */
   void stop()
   {
     keep_running_ = false;
-#ifdef NON_POLLING
     updated_cond_.notify_one();  // So the publishing loop can exit
-#endif
   }
 
-  /**  \brief Try to get the data lock from realtime
-   *
-   * To publish data from the realtime loop, you need to run trylock to
-   * attempt to get unique access to the msg_ variable. Trylock returns
-   * true if the lock was acquired, and false if it failed to get the lock.
-   */
+  /**
+  * \brief Try to acquire the data lock for non-realtime message publishing
+  *
+  * It first checks if the current state allows non-realtime message publishing (turn_ == REALTIME)
+  * and then attempts to lock
+  *
+  * \return true if the lock was successfully acquired, false otherwise
+  */
   bool trylock()
   {
-    if (msg_mutex_.try_lock()) {
-      if (turn_ == State::REALTIME) {
-        return true;
-      } else {
-        msg_mutex_.unlock();
-        return false;
-      }
+    if (turn_.load(std::memory_order_acquire) == State::REALTIME && msg_mutex_.try_lock()) {
+      return true;
     } else {
       return false;
     }
   }
 
-  /**  \brief Try to get the data lock from realtime and publish the given message
+  /**
+   * \brief Try to get the data lock from realtime and publish the given message
    *
    * Tries to gain unique access to msg_ variable. If this succeeds
    * update the msg_ variable and call unlockAndPublish
-   * @return false in case no lock for the realtime variable could be acquired
+   *
+   * \param [in] msg The message to publish
+   * \return false in case no lock for the realtime variable is acquired. This implies the message will not be published.
    */
   bool tryPublish(const MessageT & msg)
   {
@@ -141,7 +158,8 @@ public:
     return true;
   }
 
-  /**  \brief Unlock the msg_ variable
+  /**
+   * \brief Unlock the msg_ variable for the non-realtime thread to start publishing
    *
    * After a successful trylock and after the data is written to the mgs_
    * variable, the lock has to be released for the message to get
@@ -149,38 +167,31 @@ public:
    */
   void unlockAndPublish()
   {
-    turn_ = State::NON_REALTIME;
+    turn_.store(State::NON_REALTIME, std::memory_order_release);
     unlock();
   }
 
-  /**  \brief Get the data lock form non-realtime
+  /**
+   * \brief Acquire the data lock
    *
-   * To publish data from the realtime loop, you need to run trylock to
-   * attempt to get unique access to the msg_ variable. Trylock returns
-   * true if the lock was acquired, and false if it failed to get the lock.
+   * This blocking call acquires exclusive access to the msg_ variable.
+   * Use trylock() for non-blocking attempts to acquire the lock.
    */
-  void lock()
-  {
-#ifdef NON_POLLING
-    msg_mutex_.lock();
-#else
-    // never actually block on the lock
-    while (!msg_mutex_.try_lock()) {
-      std::this_thread::sleep_for(std::chrono::microseconds(200));
-    }
-#endif
-  }
+  void lock() { msg_mutex_.lock(); }
 
-  /**  \brief Unlocks the data without publishing anything
+  /**
+   * \brief Unlocks the data without publishing anything
    *
    */
   void unlock()
   {
     msg_mutex_.unlock();
-#ifdef NON_POLLING
     updated_cond_.notify_one();
-#endif
   }
+
+  std::thread & get_thread() { return thread_; }
+
+  const std::thread & get_thread() const { return thread_; }
 
 private:
   // non-copyable
@@ -189,35 +200,31 @@ private:
 
   bool is_running() const { return is_running_; }
 
+  /**
+   * \brief Publishing loop (runs in separate thread)
+   *
+   * This is the main loop for the non-realtime publishing thread. It:
+   * 1. Waits for new messages (State::NON_REALTIME)
+   * 2. Copies the message data
+   * 3. Publishes the message through the ROS publisher
+   * 4. Returns to State::REALTIME to allow realtime updates
+   *
+   * The loop continues until keep_running_ is set to false.
+   */
   void publishingLoop()
   {
     is_running_ = true;
-    turn_ = State::REALTIME;
 
     while (keep_running_) {
       MessageT outgoing;
 
-      // Locks msg_ and copies it
-
-#ifdef NON_POLLING
-      std::unique_lock<std::mutex> lock_(msg_mutex_);
-#else
-      lock();
-#endif
-
-      while (turn_ != State::NON_REALTIME && keep_running_) {
-#ifdef NON_POLLING
-        updated_cond_.wait(lock_);
-#else
-        unlock();
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
-        lock();
-#endif
+      {
+        turn_.store(State::REALTIME, std::memory_order_release);
+        // Locks msg_ and copies it to outgoing
+        std::unique_lock<std::mutex> lock_(msg_mutex_);
+        updated_cond_.wait(lock_, [&] { return turn_ == State::NON_REALTIME || !keep_running_; });
+        outgoing = msg_;
       }
-      outgoing = msg_;
-      turn_ = State::REALTIME;
-
-      unlock();
 
       // Sends the outgoing message
       if (keep_running_) {
@@ -234,10 +241,7 @@ private:
   std::thread thread_;
 
   std::mutex msg_mutex_;  // Protects msg_
-
-#ifdef NON_POLLING
   std::condition_variable updated_cond_;
-#endif
 
   enum class State : int { REALTIME, NON_REALTIME, LOOP_NOT_STARTED };
   std::atomic<State> turn_;  // Who's turn is it to use msg_?

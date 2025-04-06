@@ -11,7 +11,7 @@ The ``realtime_tools::RealtimePublisher`` allows users that write C++ ros2_contr
 
 .. code-block:: cpp
 
-  #include <realtime_tools/realtime_publisher.hpp>
+  #include <realtime_tools/realtime_publisher.h>
 
   class MyController : public controller_interface::ControllerInterface
   {
