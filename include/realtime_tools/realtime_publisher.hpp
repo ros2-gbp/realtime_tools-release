@@ -88,21 +88,16 @@ public:
     }
   }
 
-  [[deprecated(
-    "Use constructor with rclcpp::Publisher<T>::SharedPtr instead - this class does not make sense "
-    "without a real publisher")]]
-  RealtimePublisher()
-  : is_running_(false), keep_running_(false), turn_(State::LOOP_NOT_STARTED)
-  {
-  }
-
   /// Destructor
   ~RealtimePublisher()
   {
+    RCLCPP_DEBUG(rclcpp::get_logger("realtime_tools"), "Waiting for publishing thread to stop....");
     stop();
     while (is_running()) {
       std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
+    RCLCPP_DEBUG(
+      rclcpp::get_logger("realtime_tools"), "Publishing thread stopped, joining thread....");
     if (thread_.joinable()) {
       thread_.join();
     }
@@ -117,7 +112,10 @@ public:
    */
   void stop()
   {
-    keep_running_ = false;
+    {
+      std::unique_lock<std::mutex> lock(msg_mutex_);
+      keep_running_ = false;
+    }
     updated_cond_.notify_one();  // So the publishing loop can exit
   }
 
