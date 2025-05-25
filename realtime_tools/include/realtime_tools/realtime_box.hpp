@@ -55,11 +55,6 @@ using RealtimeBoxRecursive = RealtimeBoxBase<T, std::recursive_mutex>;
 template <typename T>
 using RealtimeBox = RealtimeBoxStandard<T>;
 
-// Only kept for compatibility reasons
-template <typename T, typename mutex_type = std::mutex>
-using RealtimeBoxBestEffort [[deprecated("Use RealtimeBox instead")]] =
-  RealtimeBoxBase<T, mutex_type>;
-
 }  // namespace realtime_tools
 
 #endif  // REALTIME_TOOLS__REALTIME_BOX_HPP_

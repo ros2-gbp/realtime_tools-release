@@ -39,7 +39,7 @@
 #include <optional>
 #include <utility>
 
-#include <rcpputils/pointer_traits.hpp>
+#include "rcpputils/pointer_traits.hpp"
 #ifndef _WIN32
 #include "realtime_tools/mutex.hpp"
 #define DEFAULT_MUTEX realtime_tools::prio_inherit_mutex
@@ -161,37 +161,6 @@ public:
   }
 
   /**
-   * @brief set a new content with best effort
-   * @return false if mutex could not be locked
-   * @note disabled for pointer types
-   * @deprecated Use try_set(const T & value) instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use try_set(const T & value) instead!")]]
-  typename std::enable_if_t<!is_ptr_or_smart_ptr<U>, bool> trySet(const T & value)
-  {
-    std::unique_lock<mutex_t> guard(lock_, std::defer_lock);
-    if (!guard.try_lock()) {
-      return false;
-    }
-    value_ = value;
-    return true;
-  }
-
-  /**
-   * @brief access the content readable with best effort
-   * @return false if the mutex could not be locked
-   * @note only safe way to access pointer type content (rw)
-   * @deprecated Use try_set(const std::function<void(T &)> & func) instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use try_set(const std::function<void(T &)> & func) instead!")]]
-  bool trySet(const std::function<void(T &)> & func)
-  {
-    return try_set(func);
-  }
-
-  /**
    * @brief get the content with best effort
    * @return std::nullopt if content could not be access, otherwise the content is returned
    */
@@ -222,52 +191,12 @@ public:
   }
 
   /**
-   * @brief get the content with best effort
-   * @return std::nullopt if content could not be access, otherwise the content is returned
-   * @deprecated Use try_get() instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use try_get() instead!")]] [[nodiscard]]
-  typename std::enable_if_t<!is_ptr_or_smart_ptr<U>, std::optional<U>> tryGet() const
-  {
-    return try_get();
-  }
-
-  /**
-   * @brief access the content (r) with best effort
-   * @return false if the mutex could not be locked
-   * @note only safe way to access pointer type content (r)
-   * @deprecated Use try_get(const std::function<void(const T &)> & func) instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use try_get(const std::function<void(const T &)> & func) instead!")]]
-  bool tryGet(const std::function<void(const T &)> & func)
-  {
-    return try_get(func);
-  }
-
-  /**
    * @brief Wait until the mutex can be locked and set the content (RealtimeThreadSafeBox behavior)
    * @note disabled for pointer types
    * @note same signature as in the existing RealtimeThreadSafeBox<T>
    */
   template <typename U = T>
   typename std::enable_if_t<!is_ptr_or_smart_ptr<U>, void> set(const T & value)
-  {
-    std::lock_guard<mutex_t> guard(lock_);
-    // cppcheck-suppress missingReturn
-    value_ = value;
-  }
-
-  /**
-   * @brief Wait until the mutex can be locked and set the content (RealtimeThreadSafeBox behavior)
-   * @note same signature as in the existing RealtimeThreadSafeBox<T>
-   * @note Not the safest way to access pointer type content (rw)
-   * @deprecated Use set(const std::function<void(T &)> & func) instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use set(const std::function<void(T &)> & func) instead!")]]
-  typename std::enable_if_t<is_ptr_or_smart_ptr<U>, void> set(const T & value)
   {
     std::lock_guard<mutex_t> guard(lock_);
     // cppcheck-suppress missingReturn
@@ -306,21 +235,6 @@ public:
    */
   template <typename U = T>
   typename std::enable_if_t<!is_ptr_or_smart_ptr<U>, void> get(T & in) const
-  {
-    std::lock_guard<mutex_t> guard(lock_);
-    // cppcheck-suppress missingReturn
-    in = value_;
-  }
-
-  /**
-   * @brief Wait until the mutex could be locked and get the content (r)
-   * @note same signature as in the existing RealtimeThreadSafeBox<T>
-   * @note Not the safest way to access pointer type content (r)
-   * @deprecated Use get(const std::function<void(const T &)> & func) instead!
-   */
-  template <typename U = T>
-  [[deprecated("Use get(const std::function<void(const T &)> & func) instead!")]]
-  typename std::enable_if_t<is_ptr_or_smart_ptr<U>, void> get(T & in) const
   {
     std::lock_guard<mutex_t> guard(lock_);
     // cppcheck-suppress missingReturn
@@ -375,12 +289,6 @@ public:
   // It may only be called from the thread that locked the mutex!
   [[nodiscard]] const mutex_t & get_mutex() const { return lock_; }
   [[nodiscard]] mutex_t & get_mutex() { return lock_; }
-
-  [[nodiscard]] [[deprecated("Use get_mutex() instead!")]] mutex_t & getMutex() { return lock_; }
-  [[nodiscard]] [[deprecated("Use get_mutex() instead!")]] const mutex_t & getMutex() const
-  {
-    return lock_;
-  }
 
 private:
   T value_;
