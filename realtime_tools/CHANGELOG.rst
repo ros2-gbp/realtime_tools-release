@@ -2,65 +2,89 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.14.0 (2025-06-13)
--------------------
-* Fix the deadlock in the destructor of RealtimePublisher (backport `#320 <https://github.com/ros-controls/realtime_tools/issues/320>`_) (`#324 <https://github.com/ros-controls/realtime_tools/issues/324>`_)
-* Contributors: mergify[bot]
-
-2.13.0 (2025-04-06)
--------------------
-* Fix realtime publisher race condition upon initialization (backport `#309 <https://github.com/ros-controls/realtime_tools/issues/309>`_) (`#310 <https://github.com/ros-controls/realtime_tools/issues/310>`_)
-* [RTPublisher] use NON_POLLING as default for the realtime pubisher  (backport `#280 <https://github.com/ros-controls/realtime_tools/issues/280>`_) (`#281 <https://github.com/ros-controls/realtime_tools/issues/281>`_)
-* Update the docstring for realtime_publisher.hpp (backport `#287 <https://github.com/ros-controls/realtime_tools/issues/287>`_) (`#288 <https://github.com/ros-controls/realtime_tools/issues/288>`_)
-* Contributors: mergify[bot], Julia Jia
-
-2.12.0 (2025-03-01)
--------------------
-* CI downstream build (backport `#214 <https://github.com/ros-controls/realtime_tools/issues/214>`_) (`#283 <https://github.com/ros-controls/realtime_tools/issues/283>`_)
-* Bump version of pre-commit hooks (backport `#276 <https://github.com/ros-controls/realtime_tools/issues/276>`_) (`#277 <https://github.com/ros-controls/realtime_tools/issues/277>`_)
-* Install boost on jazzy as well (backport `#273 <https://github.com/ros-controls/realtime_tools/issues/273>`_) (`#274 <https://github.com/ros-controls/realtime_tools/issues/274>`_)
-* Use ABI workflow from ros2_control_ci (backport `#264 <https://github.com/ros-controls/realtime_tools/issues/264>`_) (`#271 <https://github.com/ros-controls/realtime_tools/issues/271>`_)
-* Add Lock-free Queue (backport `#253 <https://github.com/ros-controls/realtime_tools/issues/253>`_) (`#269 <https://github.com/ros-controls/realtime_tools/issues/269>`_)
-* Improve has_realtime_kernel method (backport `#260 <https://github.com/ros-controls/realtime_tools/issues/260>`_) (`#267 <https://github.com/ros-controls/realtime_tools/issues/267>`_)
-* Branch for jazzy (backport `#263 <https://github.com/ros-controls/realtime_tools/issues/263>`_) (`#265 <https://github.com/ros-controls/realtime_tools/issues/265>`_)
-* Contributors: mergify[bot]
-
-2.11.0 (2025-01-29)
--------------------
-* Use humble branch of control_toolbox repo (backport `#258 <https://github.com/ros-controls/realtime_tools/issues/258>`_) (`#259 <https://github.com/ros-controls/realtime_tools/issues/259>`_)
-* Avoid to include windows.h in realtime_helpers.hpp (backport `#255 <https://github.com/ros-controls/realtime_tools/issues/255>`_) (`#256 <https://github.com/ros-controls/realtime_tools/issues/256>`_)
-* Bump version of pre-commit hooks (backport `#251 <https://github.com/ros-controls/realtime_tools/issues/251>`_) (`#252 <https://github.com/ros-controls/realtime_tools/issues/252>`_)
-* Fix ref for scheduled build (backport `#248 <https://github.com/ros-controls/realtime_tools/issues/248>`_) (`#249 <https://github.com/ros-controls/realtime_tools/issues/249>`_)
-* Add realtime priority inheritance mutexes (backport `#197 <https://github.com/ros-controls/realtime_tools/issues/197>`_) (`#246 <https://github.com/ros-controls/realtime_tools/issues/246>`_)
-* First step towards modernizing the rt publisher (backport `#210 <https://github.com/ros-controls/realtime_tools/issues/210>`_) (`#233 <https://github.com/ros-controls/realtime_tools/issues/233>`_)
-* Remove wrong comments (backport `#240 <https://github.com/ros-controls/realtime_tools/issues/240>`_) (`#242 <https://github.com/ros-controls/realtime_tools/issues/242>`_)
-* Update filenames also for best_effort (`#238 <https://github.com/ros-controls/realtime_tools/issues/238>`_)
-* Contributors: Christoph Fröhlich, mergify[bot]
-
-2.10.0 (2024-12-14)
--------------------
-* sleep after starting thread to fix flaky tests (backport `#235 <https://github.com/ros-controls/realtime_tools/issues/235>`_) (`#237 <https://github.com/ros-controls/realtime_tools/issues/237>`_)
-* Fix the badges in the readme (backport `#234 <https://github.com/ros-controls/realtime_tools/issues/234>`_) (`#236 <https://github.com/ros-controls/realtime_tools/issues/236>`_)
-* Remove duplicate wf (backport `#230 <https://github.com/ros-controls/realtime_tools/issues/230>`_) (`#231 <https://github.com/ros-controls/realtime_tools/issues/231>`_)
-* Adapt API style of lock_memory to match the one of the other functions (backport `#209 <https://github.com/ros-controls/realtime_tools/issues/209>`_) (`#229 <https://github.com/ros-controls/realtime_tools/issues/229>`_)
-* [Humble] Move the header files to `.hpp` extension (`#206 <https://github.com/ros-controls/realtime_tools/issues/206>`_) - No deprecation notice (`#225 <https://github.com/ros-controls/realtime_tools/issues/225>`_)
-* Add support to parse multiple cores for setting CPU affinity (backport `#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_) (`#223 <https://github.com/ros-controls/realtime_tools/issues/223>`_)
-* remove unused state\_ field (backport `#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_) (`#218 <https://github.com/ros-controls/realtime_tools/issues/218>`_)
-* Changes after branching humble (backport `#217 <https://github.com/ros-controls/realtime_tools/issues/217>`_) (`#224 <https://github.com/ros-controls/realtime_tools/issues/224>`_)
-* Add downstream build CI job (backport `#201 <https://github.com/ros-controls/realtime_tools/issues/201>`_) (`#222 <https://github.com/ros-controls/realtime_tools/issues/222>`_)
-* Use windows CI build (backport `#204 <https://github.com/ros-controls/realtime_tools/issues/204>`_) (`#221 <https://github.com/ros-controls/realtime_tools/issues/221>`_)
-* Add job for clang build (backport `#207 <https://github.com/ros-controls/realtime_tools/issues/207>`_) (`#220 <https://github.com/ros-controls/realtime_tools/issues/220>`_)
-* Bump version of pre-commit hooks (backport `#213 <https://github.com/ros-controls/realtime_tools/issues/213>`_) (`#219 <https://github.com/ros-controls/realtime_tools/issues/219>`_)
-* Contributors: Sai Kishor Kothakota, Lennart Nachtigall, Christoph Fröhlich
-
-2.9.0 (2024-12-03)
+3.7.0 (2025-06-13)
 ------------------
+* Silence some warnings (backport `#355 <https://github.com/ros-controls/realtime_tools/issues/355>`_) (`#357 <https://github.com/ros-controls/realtime_tools/issues/357>`_)
+* Add new API for the RealtimePublisher (backport `#323 <https://github.com/ros-controls/realtime_tools/issues/323>`_) (`#352 <https://github.com/ros-controls/realtime_tools/issues/352>`_)
+* Add guidelines for realtimebox/queue (backport `#347 <https://github.com/ros-controls/realtime_tools/issues/347>`_) (`#354 <https://github.com/ros-controls/realtime_tools/issues/354>`_)
+* Add docs for control.ros.org (backport `#346 <https://github.com/ros-controls/realtime_tools/issues/346>`_) (`#353 <https://github.com/ros-controls/realtime_tools/issues/353>`_)
+* Contributors: Christoph Froehlich, Sai Kishor Kothakota, mergify[bot]
+
+3.6.0 (2025-05-25)
+------------------
+* Rename RealtimeBox to RealtimeThreadsafeBox and use `prio_inherit_mutex` (backport `#318 <https://github.com/ros-controls/realtime_tools/issues/318>`_) (`#341 <https://github.com/ros-controls/realtime_tools/issues/341>`_)
+* Use `Boost::boost` instead of ${Boost_LIBRARIES} and export it (backport `#333 <https://github.com/ros-controls/realtime_tools/issues/333>`_, `#336 <https://github.com/ros-controls/realtime_tools/issues/336>`_) (`#334 <https://github.com/ros-controls/realtime_tools/issues/334>`_)
+* Use target_link_libraries instead of ament_target_dependencies (backport `#331 <https://github.com/ros-controls/realtime_tools/issues/331>`_) (`#332 <https://github.com/ros-controls/realtime_tools/issues/332>`_)
+* Contributors: mergify[bot]
+
+3.5.1 (2025-05-04)
+------------------
+* Fix the deadlock in the destructor of RealtimePublisher (backport `#320 <https://github.com/ros-controls/realtime_tools/issues/320>`_) (`#325 <https://github.com/ros-controls/realtime_tools/issues/325>`_)
+* Contributors: mergify[bot]
+
+3.5.0 (2025-04-06)
+------------------
+* Fix realtime publisher race condition upon initialization (backport `#309 <https://github.com/ros-controls/realtime_tools/issues/309>`_) (`#311 <https://github.com/ros-controls/realtime_tools/issues/311>`_)
+* Move the package to a subfolder (backport `#295 <https://github.com/ros-controls/realtime_tools/issues/295>`_) (`#306 <https://github.com/ros-controls/realtime_tools/issues/306>`_)
+* Use ros2_control_cmake (backport `#293 <https://github.com/ros-controls/realtime_tools/issues/293>`_) (`#293 <https://github.com/ros-controls/realtime_tools/issues/293>`_)
+* Contributors: mergify[bot]
+
+3.4.0 (2025-02-19)
+------------------
+* [RTPublisher] use NON_POLLING as default for the realtime pubisher  (backport `#280 <https://github.com/ros-controls/realtime_tools/issues/280>`_) (`#282 <https://github.com/ros-controls/realtime_tools/issues/282>`_)
+* Bump version of pre-commit hooks (backport `#276 <https://github.com/ros-controls/realtime_tools/issues/276>`_) (`#278 <https://github.com/ros-controls/realtime_tools/issues/278>`_)
+* Install boost on jazzy as well (backport `#273 <https://github.com/ros-controls/realtime_tools/issues/273>`_) (`#275 <https://github.com/ros-controls/realtime_tools/issues/275>`_)
+* Contributors: mergify[bot]
+
+3.3.0 (2025-01-30)
+------------------
+* Use ABI workflow from ros2_control_ci (backport `#264 <https://github.com/ros-controls/realtime_tools/issues/264>`_) (`#272 <https://github.com/ros-controls/realtime_tools/issues/272>`_)
+* Improve has_realtime_kernel method (backport `#260 <https://github.com/ros-controls/realtime_tools/issues/260>`_) (`#268 <https://github.com/ros-controls/realtime_tools/issues/268>`_)
+* Branch for jazzy (backport `#263 <https://github.com/ros-controls/realtime_tools/issues/263>`_) (`#266 <https://github.com/ros-controls/realtime_tools/issues/266>`_)
+* Contributors: mergify[bot]
+
+3.2.0 (2025-01-29)
+------------------
+* Add Lock-free Queue (`#253 <https://github.com/ros-controls/realtime_tools/issues/253>`_)
+* Use humble branch of control_toolbox repo (`#258 <https://github.com/ros-controls/realtime_tools/issues/258>`_)
+* Avoid to include windows.h in realtime_helpers.hpp (`#255 <https://github.com/ros-controls/realtime_tools/issues/255>`_)
+* Bump version of pre-commit hooks (`#251 <https://github.com/ros-controls/realtime_tools/issues/251>`_)
+* Contributors: Christoph Fröhlich, Sai Kishor Kothakota, Silvio Traversaro, github-actions[bot]
+
+3.1.0 (2024-12-29)
+------------------
+* Fix ref for scheduled build (`#248 <https://github.com/ros-controls/realtime_tools/issues/248>`_)
+* Add realtime priority inheritance mutexes (`#197 <https://github.com/ros-controls/realtime_tools/issues/197>`_)
+* Deprecate RealtimeClock class (`#244 <https://github.com/ros-controls/realtime_tools/issues/244>`_)
+* Remove wrong comments (`#240 <https://github.com/ros-controls/realtime_tools/issues/240>`_)
+* Add `get_thread` method to `RealtimePublisher` (`#228 <https://github.com/ros-controls/realtime_tools/issues/228>`_)
+* sleep after starting thread to fix flaky tests (`#235 <https://github.com/ros-controls/realtime_tools/issues/235>`_)
+* Fix the badges in the readme (`#234 <https://github.com/ros-controls/realtime_tools/issues/234>`_)
+* First step towards modernizing the rt publisher (`#210 <https://github.com/ros-controls/realtime_tools/issues/210>`_)
+* Add missing change to .hpp for realtime_clock (`#227 <https://github.com/ros-controls/realtime_tools/issues/227>`_)
+* Remove duplicate downstream build workflow (`#230 <https://github.com/ros-controls/realtime_tools/issues/230>`_)
+* Changes after branching humble (`#217 <https://github.com/ros-controls/realtime_tools/issues/217>`_)
+* CI downstream build (`#214 <https://github.com/ros-controls/realtime_tools/issues/214>`_)
+* Contributors: Christoph Fröhlich, Lennart Nachtigall, Patrick Roncagliolo, Sai Kishor Kothakota
+
+3.0.0 (2024-12-03)
+------------------
+* remove unused state\_ field (`#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_)
+* Bump version of pre-commit hooks (`#213 <https://github.com/ros-controls/realtime_tools/issues/213>`_)
+* Add job for clang build (`#207 <https://github.com/ros-controls/realtime_tools/issues/207>`_)
+* Add support to parse multiple cores for setting CPU affinity (`#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_)
+* Adapt API style of lock_memory to match the one of the other functions (`#209 <https://github.com/ros-controls/realtime_tools/issues/209>`_)
+* Move the header files to `.hpp` extension (`#206 <https://github.com/ros-controls/realtime_tools/issues/206>`_)
+* Use windows CI build (`#204 <https://github.com/ros-controls/realtime_tools/issues/204>`_)
+* Add downstream build CI job (`#201 <https://github.com/ros-controls/realtime_tools/issues/201>`_)
+* Fix RealtimeBox broken API + `realtime_box_best_effort.h` proper deprecation (`#202 <https://github.com/ros-controls/realtime_tools/issues/202>`_)
+* Replace existing RealtimeBox implementation with RealtimeBoxBestEffort implementation (`#146 <https://github.com/ros-controls/realtime_tools/issues/146>`_)
 * Overloading the set_thread_affinity method for Windows compatibility (`#193 <https://github.com/ros-controls/realtime_tools/issues/193>`_)
 * Remove iron workflows and update readme (`#184 <https://github.com/ros-controls/realtime_tools/issues/184>`_)
 * Add method to get the current callback time and period (`#192 <https://github.com/ros-controls/realtime_tools/issues/192>`_)
 * Use pthread_setaffinity_np for setting affinity rather than sched_setaffinity (`#190 <https://github.com/ros-controls/realtime_tools/issues/190>`_)
 * Add the same compile flags as with ros2_controllers and fix errors (`#185 <https://github.com/ros-controls/realtime_tools/issues/185>`_)
-* Contributors: Christoph Fröhlich, Gilmar Correia, Sai Kishor Kothakota
+* Contributors: Christoph Fröhlich, Gilmar Correia, Lennart Nachtigall, Sai Kishor Kothakota, github-actions[bot]
 
 2.8.1 (2024-11-05)
 ------------------

@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef REALTIME_TOOLS__REALTIME_SERVER_GOAL_HANDLE_H_
-#define REALTIME_TOOLS__REALTIME_SERVER_GOAL_HANDLE_H_
+#ifndef REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_
+#define REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_
 
-#include "realtime_tools/realtime_server_goal_handle.hpp"
+#include "realtime_tools/realtime_box.hpp"
 
 // Deprecation notice
+#ifdef _WIN32
 #pragma message( \
-  "This header include is deprecated. Please update your code to use 'realtime_server_goal_handle.hpp' header.")  //NOLINT
+  "This header include is deprecated. Please update your code to use 'realtime_box.hpp' header.")  //NOLINT
+#else
+#warning \
+  "This header include is deprecated. Please update your code to use 'realtime_box.hpp' header." //NOLINT
+#endif
 
-#endif  // REALTIME_TOOLS__REALTIME_SERVER_GOAL_HANDLE_H_
+#endif  // REALTIME_TOOLS__REALTIME_BOX_BEST_EFFORT_H_
