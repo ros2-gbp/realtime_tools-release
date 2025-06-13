@@ -6,7 +6,7 @@ on:
       - humble
   schedule:
     # Run every day to detect flakiness and broken dependencies
-    - cron: '03 3 * * *'
+    - cron: '03 3 * * MON-FRI'
 
 jobs:
   source:
@@ -21,6 +21,5 @@ jobs:
     with:
       ros_distro: ${{ matrix.ROS_DISTRO }}
       ref: humble
-      ros2_repo_branch: ${{ matrix.ROS_DISTRO }}
       os_name: ${{ matrix.OS_NAME }}
       container: ${{ matrix.CONTAINER }}
