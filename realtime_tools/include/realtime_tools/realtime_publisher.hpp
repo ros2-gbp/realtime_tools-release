@@ -88,6 +88,14 @@ public:
     }
   }
 
+  [[deprecated(
+    "Use constructor with rclcpp::Publisher<T>::SharedPtr instead - this class does not make sense "
+    "without a real publisher")]]
+  RealtimePublisher()
+  : is_running_(false), keep_running_(false), turn_(State::LOOP_NOT_STARTED)
+  {
+  }
+
   /// Destructor
   ~RealtimePublisher()
   {
@@ -127,9 +135,6 @@ public:
   *
   * \return true if the lock was successfully acquired, false otherwise
   */
-  [[deprecated(
-    "Use try_publish() method instead of this method. This method may be removed in future "
-    "versions.")]]
   bool trylock()
   {
     return turn_.load(std::memory_order_acquire) == State::REALTIME && msg_mutex_.try_lock();
@@ -196,16 +201,10 @@ public:
    * variable, the lock has to be released for the message to get
    * published on the specified topic.
    */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
   void unlockAndPublish()
   {
     turn_.store(State::NON_REALTIME, std::memory_order_release);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     unlock();
-#pragma GCC diagnostic pop
   }
 
   /**
@@ -214,21 +213,12 @@ public:
    * This blocking call acquires exclusive access to the msg_ variable.
    * Use trylock() for non-blocking attempts to acquire the lock.
    */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
-  void lock()
-  {
-    msg_mutex_.lock();
-  }
+  void lock() { msg_mutex_.lock(); }
 
   /**
    * \brief Unlocks the data without publishing anything
    *
    */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
   void unlock()
   {
     msg_mutex_.unlock();
