@@ -56,6 +56,9 @@ struct StringCallback
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+TEST(RealtimePublisher, construct_destruct_legacy) { RealtimePublisher<StringMsg> rt_pub; }
+
 TEST(RealtimePublisher, rt_publish_legacy)
 {
   rclcpp::init(0, nullptr);
