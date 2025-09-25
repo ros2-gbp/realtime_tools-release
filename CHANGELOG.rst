@@ -2,6 +2,11 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.8.1 (2025-09-25)
+------------------
+* Fix -Wbraced-scalar-init (backport `#409 <https://github.com/ros-controls/realtime_tools/issues/409>`_) (`#410 <https://github.com/ros-controls/realtime_tools/issues/410>`_)
+* Contributors: mergify[bot]
+
 3.8.0 (2025-09-09)
 ------------------
 * Fix RealtimeThreadSafeBox for MSVC (backport `#400 <https://github.com/ros-controls/realtime_tools/issues/400>`_) (`#401 <https://github.com/ros-controls/realtime_tools/issues/401>`_)
@@ -78,7 +83,7 @@ Changelog for package realtime_tools
 
 3.0.0 (2024-12-03)
 ------------------
-* remove unused state\_ field (`#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_)
+* remove unused ``state_`` field (`#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_)
 * Bump version of pre-commit hooks (`#213 <https://github.com/ros-controls/realtime_tools/issues/213>`_)
 * Add job for clang build (`#207 <https://github.com/ros-controls/realtime_tools/issues/207>`_)
 * Add support to parse multiple cores for setting CPU affinity (`#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_)
@@ -287,7 +292,7 @@ Changelog for package realtime_tools
 * Merge remote-tracking branch 'origin/master' into hydro-devel
 * Merge pull request `#2 <https://github.com/ros-controls/realtime_tools/issues/2>`_ from davetcoleman/master
   Made member vars mutable in realtime buffer to allow const read
-* initialize realtime_data_ and non_realtime_data_ before dereferencing and assigning to them in copy constructor
+* initialize ``realtime_data_`` and ``non_realtime_data_`` before dereferencing and assigning to them in copy constructor
 * Added comments
 * Added readFromNonRT() function, overloaded assignment and copy constructor, and made mutex mutable.
 * Fix typos.
