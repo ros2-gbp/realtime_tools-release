@@ -1,3 +1,26 @@
+## realtime_tools (jazzy) - 3.9.0-1
+
+The packages in the `realtime_tools` repository were released into the `jazzy` distro by running `/usr/bin/bloom-release --rosdistro jazzy realtime_tools` on `Thu, 25 Sep 2025 12:45:29 -0000`
+
+The `realtime_tools` package was released.
+
+Version of package(s) in repository `realtime_tools`:
+
+- upstream repository: https://github.com/ros-controls/realtime_tools.git
+- release repository: https://github.com/ros2-gbp/realtime_tools-release.git
+- rosdistro version: `3.8.1-1`
+- old version: `3.8.1-1`
+- new version: `3.9.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.13.0`
+- catkin_pkg version: `1.1.0`
+- rosdep version: `0.26.0`
+- rosdistro version: `1.0.1`
+- vcstools version: `0.1.42`
+
+
 ## realtime_tools (jazzy) - 3.8.1-1
 
 The packages in the `realtime_tools` repository were released into the `jazzy` distro by running `/usr/bin/bloom-release --rosdistro jazzy realtime_tools` on `Thu, 25 Sep 2025 07:16:48 -0000`
