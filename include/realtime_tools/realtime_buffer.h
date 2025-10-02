@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef REALTIME_TOOLS__REALTIME_PUBLISHER_H_
-#define REALTIME_TOOLS__REALTIME_PUBLISHER_H_
+#ifndef REALTIME_TOOLS__REALTIME_BUFFER_H_
+#define REALTIME_TOOLS__REALTIME_BUFFER_H_
 
-#include "realtime_tools/realtime_publisher.hpp"
+#include "realtime_tools/realtime_buffer.hpp"
 
 // Deprecation notice
-#ifdef _WIN32
 #pragma message( \
-  "This header include is deprecated. Please update your code to use 'realtime_publisher.hpp' header.")  //NOLINT
-#else
-#warning \
-  "This header include is deprecated. Please update your code to use 'realtime_publisher.hpp' header." //NOLINT
-#endif
+  "This header include is deprecated. Please update your code to use 'realtime_buffer.hpp' header.")  //NOLINT
 
-#endif  // REALTIME_TOOLS__REALTIME_PUBLISHER_H_
+#endif  // REALTIME_TOOLS__REALTIME_BUFFER_H_
