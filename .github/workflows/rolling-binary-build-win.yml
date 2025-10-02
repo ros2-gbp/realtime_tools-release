@@ -17,9 +17,9 @@ on:
   #     - created
 
 concurrency:
-  # cancel previous runs of the same workflow, except for pushes on master branch
+  # cancel previous runs of the same workflow, except for pushes on given branches
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, '/refs/heads') }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/heads') }}
 
 jobs:
   binary-windows:
@@ -29,7 +29,6 @@ jobs:
     #   (github.event_name == 'workflow_dispatch')
     uses: ros-controls/ros2_control_ci/.github/workflows/reusable-ros-tooling-win-build.yml@master
     with:
-      ros_distro: jazzy # no pre-compiled rolling version is available
+      ros_distro: rolling
       ref_for_scheduled_build: master
-      os_name: windows-2019
-      install_boost: true
+      pixi_dependencies: boost compilers

@@ -2,6 +2,22 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.14.1 (2025-10-02)
+-------------------
+* Bump version of pre-commit hooks (backport `#414 <https://github.com/ros-controls/realtime_tools/issues/414>`_) (`#415 <https://github.com/ros-controls/realtime_tools/issues/415>`_)
+* Fix source builds (backport `#406 <https://github.com/ros-controls/realtime_tools/issues/406>`_) (`#407 <https://github.com/ros-controls/realtime_tools/issues/407>`_)
+* Fix rst syntax in changelog (backport `#403 <https://github.com/ros-controls/realtime_tools/issues/403>`_) (`#404 <https://github.com/ros-controls/realtime_tools/issues/404>`_)
+* Bump actions/stale from 9 to 10 (backport `#397 <https://github.com/ros-controls/realtime_tools/issues/397>`_) (`#398 <https://github.com/ros-controls/realtime_tools/issues/398>`_)
+* Add prerelease jobs (backport `#390 <https://github.com/ros-controls/realtime_tools/issues/390>`_) (`#392 <https://github.com/ros-controls/realtime_tools/issues/392>`_)
+* Bump version of pre-commit hooks (backport `#387 <https://github.com/ros-controls/realtime_tools/issues/387>`_) (`#388 <https://github.com/ros-controls/realtime_tools/issues/388>`_)
+* Fix `github.ref` check for concurrency settings (backport `#384 <https://github.com/ros-controls/realtime_tools/issues/384>`_) (`#385 <https://github.com/ros-controls/realtime_tools/issues/385>`_)
+* Bump version of pre-commit hooks (backport `#378 <https://github.com/ros-controls/realtime_tools/issues/378>`_) (`#379 <https://github.com/ros-controls/realtime_tools/issues/379>`_)
+* Add CI job for docs (backport `#367 <https://github.com/ros-controls/realtime_tools/issues/367>`_) (`#368 <https://github.com/ros-controls/realtime_tools/issues/368>`_)
+* Run workflow on pushes to save cache (backport `#364 <https://github.com/ros-controls/realtime_tools/issues/364>`_) (`#365 <https://github.com/ros-controls/realtime_tools/issues/365>`_)
+* Bump version of pre-commit hooks (backport `#361 <https://github.com/ros-controls/realtime_tools/issues/361>`_) (`#362 <https://github.com/ros-controls/realtime_tools/issues/362>`_)
+* Use new windows workflow (backport `#358 <https://github.com/ros-controls/realtime_tools/issues/358>`_) (`#359 <https://github.com/ros-controls/realtime_tools/issues/359>`_)
+* Contributors: mergify[bot]
+
 2.14.0 (2025-06-13)
 -------------------
 * Fix the deadlock in the destructor of RealtimePublisher (backport `#320 <https://github.com/ros-controls/realtime_tools/issues/320>`_) (`#324 <https://github.com/ros-controls/realtime_tools/issues/324>`_)
@@ -45,7 +61,7 @@ Changelog for package realtime_tools
 * Adapt API style of lock_memory to match the one of the other functions (backport `#209 <https://github.com/ros-controls/realtime_tools/issues/209>`_) (`#229 <https://github.com/ros-controls/realtime_tools/issues/229>`_)
 * [Humble] Move the header files to `.hpp` extension (`#206 <https://github.com/ros-controls/realtime_tools/issues/206>`_) - No deprecation notice (`#225 <https://github.com/ros-controls/realtime_tools/issues/225>`_)
 * Add support to parse multiple cores for setting CPU affinity (backport `#208 <https://github.com/ros-controls/realtime_tools/issues/208>`_) (`#223 <https://github.com/ros-controls/realtime_tools/issues/223>`_)
-* remove unused state\_ field (backport `#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_) (`#218 <https://github.com/ros-controls/realtime_tools/issues/218>`_)
+* remove unused ``state_`` field (backport `#215 <https://github.com/ros-controls/realtime_tools/issues/215>`_) (`#218 <https://github.com/ros-controls/realtime_tools/issues/218>`_)
 * Changes after branching humble (backport `#217 <https://github.com/ros-controls/realtime_tools/issues/217>`_) (`#224 <https://github.com/ros-controls/realtime_tools/issues/224>`_)
 * Add downstream build CI job (backport `#201 <https://github.com/ros-controls/realtime_tools/issues/201>`_) (`#222 <https://github.com/ros-controls/realtime_tools/issues/222>`_)
 * Use windows CI build (backport `#204 <https://github.com/ros-controls/realtime_tools/issues/204>`_) (`#221 <https://github.com/ros-controls/realtime_tools/issues/221>`_)
@@ -254,7 +270,7 @@ Changelog for package realtime_tools
 * Merge remote-tracking branch 'origin/master' into hydro-devel
 * Merge pull request `#2 <https://github.com/ros-controls/realtime_tools/issues/2>`_ from davetcoleman/master
   Made member vars mutable in realtime buffer to allow const read
-* initialize realtime_data_ and non_realtime_data_ before dereferencing and assigning to them in copy constructor
+* initialize ``realtime_data_`` and ``non_realtime_data_`` before dereferencing and assigning to them in copy constructor
 * Added comments
 * Added readFromNonRT() function, overloaded assignment and copy constructor, and made mutex mutable.
 * Fix typos.
