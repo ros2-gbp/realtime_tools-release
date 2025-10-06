@@ -1,5 +1,4 @@
-// Copyright (c) 2009, Willow Garage, Inc.
-// Copyright (c) 2024, Lennart Nachtigall
+// Copyright (c) 2019, Open Source Robotics Foundation, Inc.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -11,7 +10,7 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of the Willow Garage, Inc. nor the names of its
+//    * Neither the name of the Open Source Robotics Foundation, Inc. nor the names of its
 //      contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
@@ -27,39 +26,42 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Stuart Glaser
-// Author: Lennart Nachtigall
+#include <gmock/gmock.h>
 
-#ifndef REALTIME_TOOLS__REALTIME_BOX_HPP_
-#define REALTIME_TOOLS__REALTIME_BOX_HPP_
+#include <chrono>
+#include <thread>
 
-#include "realtime_tools/realtime_thread_safe_box.hpp"
+#include "rclcpp/utilities.hpp"
+#include "realtime_tools/realtime_clock.hpp"
 
-// Deprecation notice
-#pragma message( \
-  "'RealtimeBox' is deprecated. Please update your code to use 'realtime_thread_safe_box.hpp' header, and class name 'RealtimeThreadSafeBox' instead.")  //NOLINT
+// Disable deprecated warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-namespace realtime_tools
+using realtime_tools::RealtimeClock;
+
+TEST(RealtimeClock, get_system_time)
 {
+  // initialize the global context
+  rclcpp::init(0, nullptr);
+  const int ATTEMPTS = 10;
+  const std::chrono::milliseconds DELAY(1);
 
-// Provide backward-compatibility for the old RealtimeBox class
-template <class T, typename mutex_type = std::mutex>
-using RealtimeBoxBase = RealtimeThreadSafeBox<T, mutex_type>;
+  rclcpp::Clock::SharedPtr clock(new rclcpp::Clock());
+  {
+    RealtimeClock rt_clock(clock);
+    // Wait for time to be available
+    rclcpp::Time last_rt_time;
+    for (int i = 0; i < ATTEMPTS && rclcpp::Time() == last_rt_time; ++i) {
+      std::this_thread::sleep_for(DELAY);
+      last_rt_time = rt_clock.now(rclcpp::Time());
+    }
+    ASSERT_NE(rclcpp::Time(), last_rt_time);
 
-template <typename T>
-using RealtimeBoxStandard = RealtimeBoxBase<T, std::mutex>;
+    // This test assumes system time will not jump backwards during it
+    EXPECT_GT(rt_clock.now(last_rt_time), last_rt_time);
+  }
+  rclcpp::shutdown();
+}
 
-template <typename T>
-using RealtimeBoxRecursive = RealtimeBoxBase<T, std::recursive_mutex>;
-
-template <typename T>
-using RealtimeBox = RealtimeBoxStandard<T>;
-
-// Only kept for compatibility reasons
-template <typename T, typename mutex_type = std::mutex>
-using RealtimeBoxBestEffort [[deprecated("Use RealtimeBox instead")]] =
-  RealtimeBoxBase<T, mutex_type>;
-
-}  // namespace realtime_tools
-
-#endif  // REALTIME_TOOLS__REALTIME_BOX_HPP_
+#pragma GCC diagnostic pop
