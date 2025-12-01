@@ -63,10 +63,6 @@ public:
 
   RCLCPP_SMART_PTR_DEFINITIONS(RealtimePublisher<MessageT>)
 
-  [[deprecated(
-    "This variable is deprecated, it is recommended to use the try_publish() method instead.")]]
-  MessageT msg_;
-
   /**
    * \brief Constructor for the realtime publisher
    *
@@ -76,13 +72,6 @@ public:
    *
    * \param publisher the ROS publisher to wrap
    */
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
   explicit RealtimePublisher(PublisherSharedPtr publisher)
   : publisher_(publisher), is_running_(false), keep_running_(true), turn_(State::LOOP_NOT_STARTED)
   {
@@ -111,11 +100,6 @@ public:
       thread_.join();
     }
   }
-#ifdef _MSC_VER
-#pragma warning(pop)
-#else
-#pragma GCC diagnostic pop
-#endif
 
   /**
    * \brief Stop the realtime publisher
@@ -131,22 +115,6 @@ public:
       keep_running_ = false;
     }
     updated_cond_.notify_one();  // So the publishing loop can exit
-  }
-
-  /**
-  * \brief Try to acquire the data lock for non-realtime message publishing
-  *
-  * It first checks if the current state allows non-realtime message publishing (turn_ == REALTIME)
-  * and then attempts to lock
-  *
-  * \return true if the lock was successfully acquired, false otherwise
-  */
-  [[deprecated(
-    "Use try_publish() method instead of this method. This method may be removed in future "
-    "versions.")]]
-  bool trylock()
-  {
-    return turn_.load(std::memory_order_acquire) == State::REALTIME && msg_mutex_.try_lock();
   }
 
   /**
@@ -174,90 +142,13 @@ public:
     if (can_publish(lock)) {
       {
         std::unique_lock<std::mutex> scoped_lock(std::move(lock));
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
         msg_ = msg;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#else
-#pragma GCC diagnostic pop
-#endif
         turn_.store(State::NON_REALTIME, std::memory_order_release);
       }
       updated_cond_.notify_one();  // Notify the publishing thread
       return true;
     }
     return false;
-  }
-
-  /**
-   * \brief Try to publish the given message (deprecated)
-   * \deprecated This method is deprecated and should be replaced with try_publish()
-   *
-   * This method is deprecated and should be replaced with try_publish().
-   * It attempts to publish the given message if the publisher is in a state to do so.
-   * It uses a try_lock to avoid blocking if the mutex is already held by another thread.
-   *
-   * \param [in] msg The message to publish
-   * \return true if the message was successfully published, false otherwise
-   */
-  [[deprecated(
-    "Use try_publish() method instead of this method. This method may be removed in future "
-    "versions.")]]
-  bool tryPublish(const MessageT & msg)
-  {
-    return try_publish(msg);
-  }
-
-  /**
-   * \brief Unlock the msg_ variable for the non-realtime thread to start publishing
-   *
-   * After a successful trylock and after the data is written to the mgs_
-   * variable, the lock has to be released for the message to get
-   * published on the specified topic.
-   */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
-  void unlockAndPublish()
-  {
-    turn_.store(State::NON_REALTIME, std::memory_order_release);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    unlock();
-#pragma GCC diagnostic pop
-  }
-
-  /**
-   * \brief Acquire the data lock
-   *
-   * This blocking call acquires exclusive access to the msg_ variable.
-   * Use trylock() for non-blocking attempts to acquire the lock.
-   */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
-  void lock()
-  {
-    msg_mutex_.lock();
-  }
-
-  /**
-   * \brief Unlocks the data without publishing anything
-   *
-   */
-  [[deprecated(
-    "Use the try_publish() method to publish the message instead of using this method. This method "
-    "may be removed in future versions.")]]
-  void unlock()
-  {
-    msg_mutex_.unlock();
-    updated_cond_.notify_one();
   }
 
   /**
@@ -273,26 +164,6 @@ public:
    * This can be used to set thread properties.
    */
   const std::thread & get_thread() const { return thread_; }
-
-  [[deprecated(
-    "This getter method will be removed. It is recommended to use the try_publish() instead of "
-    "accessing the msg_ variable.")]]
-  const MessageT & get_msg() const
-  {
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-    return msg_;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#else
-#pragma GCC diagnostic pop
-#endif
-  }
 
   /**
    * \brief Get the mutex protecting the stored message.
@@ -344,19 +215,7 @@ private:
         // Locks msg_ and copies it to outgoing
         std::unique_lock<std::mutex> lock_(msg_mutex_);
         updated_cond_.wait(lock_, [&] { return turn_ == State::NON_REALTIME || !keep_running_; });
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4996)
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
         outgoing = msg_;
-#ifdef _MSC_VER
-#pragma warning(pop)
-#else
-#pragma GCC diagnostic pop
-#endif
       }
 
       // Sends the outgoing message
@@ -372,6 +231,8 @@ private:
   std::atomic<bool> keep_running_;
 
   std::thread thread_;
+
+  MessageT msg_;
 
   mutable std::mutex msg_mutex_;  // Protects msg_
   std::condition_variable updated_cond_;
