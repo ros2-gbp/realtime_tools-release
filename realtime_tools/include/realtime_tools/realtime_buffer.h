@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef REALTIME_TOOLS__REALTIME_CLOCK_H_
-#define REALTIME_TOOLS__REALTIME_CLOCK_H_
+#ifndef REALTIME_TOOLS__REALTIME_BUFFER_H_
+#define REALTIME_TOOLS__REALTIME_BUFFER_H_
 
-#include "realtime_tools/realtime_clock.hpp"
+#include "realtime_tools/realtime_buffer.hpp"
 
 // Deprecation notice
+#ifdef _WIN32
 #pragma message( \
-  "This header include is deprecated. Please update your code to use 'realtime_clock.hpp' header.")  //NOLINT
+  "This header include is deprecated. Please update your code to use 'realtime_buffer.hpp' header.")  //NOLINT
+#else
+#warning \
+  "This header include is deprecated. Please update your code to use 'realtime_buffer.hpp' header." //NOLINT
+#endif
 
-#endif  // REALTIME_TOOLS__REALTIME_CLOCK_H_
+#endif  // REALTIME_TOOLS__REALTIME_BUFFER_H_
