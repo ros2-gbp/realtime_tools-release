@@ -29,69 +29,33 @@
 #include <gmock/gmock.h>
 
 #include <chrono>
-#include <memory>
-#include <mutex>
 #include <thread>
 
-#include "rclcpp/executors.hpp"
-#include "rclcpp/node.hpp"
 #include "rclcpp/utilities.hpp"
-#include "realtime_tools/realtime_publisher.hpp"
-#include "test_msgs/msg/strings.hpp"
+#include "realtime_tools/realtime_clock.hpp"
 
-using StringMsg = test_msgs::msg::Strings;
-using realtime_tools::RealtimePublisher;
+using realtime_tools::RealtimeClock;
 
-struct StringCallback
+TEST(RealtimeClock, get_system_time)
 {
-  StringMsg msg_;
-  std::mutex mtx_;
-
-  void callback(const StringMsg::SharedPtr msg)
-  {
-    std::unique_lock<std::mutex> lock(mtx_);
-    msg_ = *msg;
-  }
-};
-
-TEST(RealtimePublisher, rt_can_try_publish)
-{
+  // initialize the global context
   rclcpp::init(0, nullptr);
-  const size_t ATTEMPTS = 10;
-  const std::chrono::milliseconds DELAY(250);
+  const int ATTEMPTS = 10;
+  const std::chrono::milliseconds DELAY(1);
 
-  const char * expected_msg = "Hello World";
-  auto node = std::make_shared<rclcpp::Node>("construct_move_destruct");
-  rclcpp::QoS qos(10);
-  qos.reliable().transient_local();
-  auto pub = node->create_publisher<StringMsg>("~/rt_publish", qos);
-  RealtimePublisher<StringMsg> rt_pub(pub);
-  ASSERT_TRUE(rt_pub.can_publish());
-
-  // try publish a latched message
-  bool publish_success = false;
-  for (std::size_t i = 0; i < ATTEMPTS; ++i) {
-    StringMsg msg;
-    msg.string_value = expected_msg;
-
-    if (rt_pub.can_publish()) {
-      ASSERT_TRUE(rt_pub.try_publish(msg));
-      publish_success = true;
+  rclcpp::Clock::SharedPtr clock(new rclcpp::Clock());
+  {
+    RealtimeClock rt_clock(clock);
+    // Wait for time to be available
+    rclcpp::Time last_rt_time;
+    for (int i = 0; i < ATTEMPTS && rclcpp::Time() == last_rt_time; ++i) {
+      std::this_thread::sleep_for(DELAY);
+      last_rt_time = rt_clock.now(rclcpp::Time());
     }
-    std::this_thread::sleep_for(DELAY);
-  }
-  ASSERT_TRUE(publish_success);
+    ASSERT_NE(rclcpp::Time(), last_rt_time);
 
-  // make sure subscriber gets it
-  StringCallback str_callback;
-
-  auto sub = node->create_subscription<StringMsg>(
-    "~/rt_publish", qos,
-    std::bind(&StringCallback::callback, &str_callback, std::placeholders::_1));
-  for (size_t i = 0; i < ATTEMPTS && str_callback.msg_.string_value.empty(); ++i) {
-    rclcpp::spin_some(node);
-    std::this_thread::sleep_for(DELAY);
+    // This test assumes system time will not jump backwards during it
+    EXPECT_GT(rt_clock.now(last_rt_time), last_rt_time);
   }
-  EXPECT_STREQ(expected_msg, str_callback.msg_.string_value.c_str());
   rclcpp::shutdown();
 }

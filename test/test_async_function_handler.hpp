@@ -34,9 +34,7 @@ class TestAsyncFunctionHandler
 public:
   TestAsyncFunctionHandler();
 
-  void initialize(
-    realtime_tools::AsyncFunctionHandlerParams params =
-      realtime_tools::AsyncFunctionHandlerParams());
+  void initialize();
 
   realtime_tools::AsyncFunctionHandler<return_type> & get_handler() { return handler_; }
 

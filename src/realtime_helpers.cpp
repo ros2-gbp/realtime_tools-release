@@ -32,11 +32,10 @@
 #include <windows.h>
 #else
 #include <sched.h>
-#if defined(__unix__)
 #include <sys/capability.h>
-#endif
 #include <sys/mman.h>
 #include <sys/utsname.h>
+
 #include <unistd.h>
 #endif
 
@@ -76,20 +75,6 @@ bool configure_sched_fifo(int priority)
 #ifdef _WIN32
   HANDLE thread = GetCurrentThread();
   return SetThreadPriority(thread, priority);
-#elif defined(__APPLE__)
-  // macOS implementation using pthread_setschedparam with SCHED_FIFO
-  pthread_t thread = pthread_self();
-  struct sched_param schedp;
-  memset(&schedp, 0, sizeof(schedp));
-  schedp.sched_priority = priority;
-
-  int policy = SCHED_FIFO;
-  if (pthread_setschedparam(thread, policy, &schedp) == 0) {
-    return true;
-  } else {
-    // Optionally log strerror(errno) for debugging
-    return false;
-  }
 #else
   struct sched_param schedp;
   memset(&schedp, 0, sizeof(schedp));
@@ -98,10 +83,17 @@ bool configure_sched_fifo(int priority)
 #endif
 }
 
+bool lock_memory(std::string & message)
+{
+  const auto lock_result = lock_memory();
+  message = lock_result.second;
+  return lock_result.first;
+}
+
 std::pair<bool, std::string> lock_memory()
 {
-#if defined(_WIN32) || defined(__APPLE__)
-  return {false, "Memory locking is not supported on Windows or macOS."};
+#ifdef _WIN32
+  return {false, "Memory locking is not supported on Windows."};
 #else
   auto is_capable = [](cap_value_t v) -> bool {
     bool rc = false;
@@ -151,8 +143,8 @@ std::pair<bool, std::string> set_thread_affinity(
   NATIVE_THREAD_HANDLE thread, const std::vector<int> & cores)
 {
   std::string message;
-#if defined(_WIN32) || defined(__APPLE__)
-  message = "Thread affinity is not supported on Windows or macOS.";
+#ifdef _WIN32
+  message = "Thread affinity is not supported on Windows.";
   return std::make_pair(false, message);
 #else
   auto set_affinity_result_message = [](int result, std::string & msg) -> bool {
