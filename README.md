@@ -1,3 +1,26 @@
+## realtime_tools (kilted) - 4.7.1-1
+
+The packages in the `realtime_tools` repository were released into the `kilted` distro by running `/usr/bin/bloom-release --ros-distro kilted realtime_tools` on `Mon, 01 Dec 2025 11:46:42 -0000`
+
+The `realtime_tools` package was released.
+
+Version of package(s) in repository `realtime_tools`:
+
+- upstream repository: https://github.com/ros-controls/realtime_tools.git
+- release repository: https://github.com/ros2-gbp/realtime_tools-release.git
+- rosdistro version: `4.7.0-1`
+- old version: `4.7.0-1`
+- new version: `4.7.1-1`
+
+Versions of tools used:
+
+- bloom version: `0.13.0`
+- catkin_pkg version: `1.1.0`
+- rosdep version: `0.26.0`
+- rosdistro version: `1.0.1`
+- vcstools version: `0.1.42`
+
+
 ## realtime_tools (jazzy) - 3.10.1-1
 
 The packages in the `realtime_tools` repository were released into the `jazzy` distro by running `/usr/bin/bloom-release --ros-distro jazzy realtime_tools` on `Mon, 01 Dec 2025 11:43:20 -0000`
