@@ -37,7 +37,6 @@ if(NOT Boost_headers_FOUND)
 endif()
 
 add_library(realtime_tools SHARED
-  src/realtime_clock.cpp
   src/realtime_helpers.cpp
 )
 target_compile_features(realtime_tools PUBLIC cxx_std_17)
@@ -74,8 +73,8 @@ if(BUILD_TESTING)
   ament_add_gmock(thread_priority_tests test/thread_priority_tests.cpp)
   target_link_libraries(thread_priority_tests thread_priority)
 
-  ament_add_gmock(realtime_box_tests test/realtime_box_tests.cpp)
-  target_link_libraries(realtime_box_tests realtime_tools)
+  ament_add_gmock(realtime_thread_safe_box_tests test/realtime_thread_safe_box_tests.cpp)
+  target_link_libraries(realtime_thread_safe_box_tests realtime_tools)
 
   ament_add_gmock(realtime_buffer_tests test/realtime_buffer_tests.cpp)
   target_link_libraries(realtime_buffer_tests realtime_tools)
@@ -86,9 +85,6 @@ if(BUILD_TESTING)
   if(UNIX AND NOT APPLE)
     target_link_libraries(lock_free_queue_tests atomic)
   endif()
-
-  ament_add_gmock(realtime_clock_tests test/realtime_clock_tests.cpp)
-  target_link_libraries(realtime_clock_tests realtime_tools)
 
   ament_add_gmock(realtime_publisher_tests
                   test/realtime_publisher.test

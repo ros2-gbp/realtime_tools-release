@@ -63,8 +63,6 @@ public:
 
   RCLCPP_SMART_PTR_DEFINITIONS(RealtimePublisher<MessageT>)
 
-  MessageT msg_;
-
   /**
    * \brief Constructor for the realtime publisher
    *
@@ -86,14 +84,6 @@ public:
            turn_.load(std::memory_order_acquire) == State::LOOP_NOT_STARTED) {
       std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
-  }
-
-  [[deprecated(
-    "Use constructor with rclcpp::Publisher<T>::SharedPtr instead - this class does not make sense "
-    "without a real publisher")]]
-  RealtimePublisher()
-  : is_running_(false), keep_running_(false), turn_(State::LOOP_NOT_STARTED)
-  {
   }
 
   /// Destructor
@@ -128,22 +118,8 @@ public:
   }
 
   /**
-  * \brief Try to acquire the data lock for non-realtime message publishing
-  *
-  * It first checks if the current state allows non-realtime message publishing (turn_ == REALTIME)
-  * and then attempts to lock
-  *
-  * \return true if the lock was successfully acquired, false otherwise
-  */
-  bool trylock()
-  {
-    return turn_.load(std::memory_order_acquire) == State::REALTIME && msg_mutex_.try_lock();
-  }
-
-  /**
    * \brief Check if the realtime publisher is in a state to publish messages
    * \return true if the publisher is in a state to publish messages
-   * \note The msg_ variable can be safely accessed if this function returns true
   */
   bool can_publish() const
   {
@@ -176,63 +152,27 @@ public:
   }
 
   /**
-   * \brief Try to publish the given message (deprecated)
-   * \deprecated This method is deprecated and should be replaced with try_publish()
+   * \brief Get the thread object for the publishing thread.
    *
-   * This method is deprecated and should be replaced with try_publish().
-   * It attempts to publish the given message if the publisher is in a state to do so.
-   * It uses a try_lock to avoid blocking if the mutex is already held by another thread.
-   *
-   * \param [in] msg The message to publish
-   * \return true if the message was successfully published, false otherwise
+   * This can be used to set thread properties.
    */
-  [[deprecated(
-    "Use try_publish() method instead of this method. This method may be removed in future "
-    "versions.")]]
-  bool tryPublish(const MessageT & msg)
-  {
-    return try_publish(msg);
-  }
-
-  /**
-   * \brief Unlock the msg_ variable for the non-realtime thread to start publishing
-   *
-   * After a successful trylock and after the data is written to the mgs_
-   * variable, the lock has to be released for the message to get
-   * published on the specified topic.
-   */
-  void unlockAndPublish()
-  {
-    turn_.store(State::NON_REALTIME, std::memory_order_release);
-    unlock();
-  }
-
-  /**
-   * \brief Acquire the data lock
-   *
-   * This blocking call acquires exclusive access to the msg_ variable.
-   * Use trylock() for non-blocking attempts to acquire the lock.
-   */
-  void lock() { msg_mutex_.lock(); }
-
-  /**
-   * \brief Unlocks the data without publishing anything
-   *
-   */
-  void unlock()
-  {
-    msg_mutex_.unlock();
-    updated_cond_.notify_one();
-  }
-
   std::thread & get_thread() { return thread_; }
 
+  /**
+   * \brief Get the thread object for the publishing thread.
+   *
+   * This can be used to set thread properties.
+   */
   const std::thread & get_thread() const { return thread_; }
 
-  const MessageT & get_msg() const { return msg_; }
-
+  /**
+   * \brief Get the mutex protecting the stored message.
+   */
   std::mutex & get_mutex() { return msg_mutex_; }
 
+  /**
+   * \brief Get the mutex protecting the stored message.
+   */
   const std::mutex & get_mutex() const { return msg_mutex_; }
 
 private:
@@ -240,7 +180,6 @@ private:
    * \brief Check if the realtime publisher is in a state to publish messages
    * \param lock A unique_lock that is already acquired on the msg_mutex_
    * \return true if the publisher is in a state to publish messages
-   * \note The msg_ variable can be safely accessed if this function returns true
   */
   bool can_publish(std::unique_lock<std::mutex> & lock) const
   {
@@ -292,6 +231,8 @@ private:
   std::atomic<bool> keep_running_;
 
   std::thread thread_;
+
+  MessageT msg_;
 
   mutable std::mutex msg_mutex_;  // Protects msg_
   std::condition_variable updated_cond_;
