@@ -1,5 +1,4 @@
-// Copyright (c) 2009, Willow Garage, Inc.
-// Copyright (c) 2024, Lennart Nachtigall
+// Copyright (c) 2022, PickNik, Inc.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -11,7 +10,7 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of the Willow Garage, Inc. nor the names of its
+//    * Neither the name of the PickNik Inc. nor the names of its
 //      contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
@@ -27,39 +26,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// Author: Stuart Glaser
-// Author: Lennart Nachtigall
+#ifndef REALTIME_TOOLS__THREAD_PRIORITY_HPP_
+#define REALTIME_TOOLS__THREAD_PRIORITY_HPP_
 
-#ifndef REALTIME_TOOLS__REALTIME_BOX_HPP_
-#define REALTIME_TOOLS__REALTIME_BOX_HPP_
-
-#include "realtime_tools/realtime_thread_safe_box.hpp"
+#include "realtime_tools/realtime_helpers.hpp"
 
 // Deprecation notice
+#ifdef _WIN32
 #pragma message( \
-  "'RealtimeBox' is deprecated. Please update your code to use 'realtime_thread_safe_box.hpp' header, and class name 'RealtimeThreadSafeBox' instead.")  //NOLINT
+  "This header include is deprecated. Please update your code to use 'realtime_helpers.hpp' header and link against 'realtime_tools' library.")  //NOLINT
+#else
+#warning \
+  "This header include is deprecated. Please update your code to use 'realtime_helpers.hpp' header and link against 'realtime_tools' library." //NOLINT
+#endif
 
-namespace realtime_tools
-{
-
-// Provide backward-compatibility for the old RealtimeBox class
-template <class T, typename mutex_type = std::mutex>
-using RealtimeBoxBase = RealtimeThreadSafeBox<T, mutex_type>;
-
-template <typename T>
-using RealtimeBoxStandard = RealtimeBoxBase<T, std::mutex>;
-
-template <typename T>
-using RealtimeBoxRecursive = RealtimeBoxBase<T, std::recursive_mutex>;
-
-template <typename T>
-using RealtimeBox = RealtimeBoxStandard<T>;
-
-// Only kept for compatibility reasons
-template <typename T, typename mutex_type = std::mutex>
-using RealtimeBoxBestEffort [[deprecated("Use RealtimeBox instead")]] =
-  RealtimeBoxBase<T, mutex_type>;
-
-}  // namespace realtime_tools
-
-#endif  // REALTIME_TOOLS__REALTIME_BOX_HPP_
+#endif  // REALTIME_TOOLS__THREAD_PRIORITY_HPP_
