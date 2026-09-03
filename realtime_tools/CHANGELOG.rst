@@ -2,35 +2,28 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-5.3.0 (2026-09-03)
+4.9.0 (2026-09-03)
 ------------------
-* feat: create publisher internally in RealtimePublisher (`#573 <https://github.com/ros-controls/realtime_tools/issues/573>`_)
-* print async thread pinned cores (`#551 <https://github.com/ros-controls/realtime_tools/issues/551>`_)
-* Add configure_sched_rr() for SCHED_RR scheduling policy (`#513 <https://github.com/ros-controls/realtime_tools/issues/513>`_)
-* package.xml: correct license to a valid SPDX (`#552 <https://github.com/ros-controls/realtime_tools/issues/552>`_)
-* Add thread naming in async function handler (`#550 <https://github.com/ros-controls/realtime_tools/issues/550>`_)
-* Apply CMP0167 also for exported dependencies (`#539 <https://github.com/ros-controls/realtime_tools/issues/539>`_)
-* Fix CMP0167 and remove FindBoost (`#531 <https://github.com/ros-controls/realtime_tools/issues/531>`_)
-* Bump C++ version to C++20 (`#520 <https://github.com/ros-controls/realtime_tools/issues/520>`_)
-* Contributors: Christoph Fröhlich, Jan Vermaete, Nikola Banović, Souri Rishik, Suresh Kondepudi
+* feat: create publisher internally in RealtimePublisher (backport `#573 <https://github.com/ros-controls/realtime_tools/issues/573>`_) (`#575 <https://github.com/ros-controls/realtime_tools/issues/575>`_)
+* print async thread pinned cores (backport `#551 <https://github.com/ros-controls/realtime_tools/issues/551>`_) (`#568 <https://github.com/ros-controls/realtime_tools/issues/568>`_)
+* Add configure_sched_rr() for SCHED_RR scheduling policy (backport `#513 <https://github.com/ros-controls/realtime_tools/issues/513>`_) (`#563 <https://github.com/ros-controls/realtime_tools/issues/563>`_)
+* Add thread renaming in async function handler (backport `#550 <https://github.com/ros-controls/realtime_tools/issues/550>`_) (`#559 <https://github.com/ros-controls/realtime_tools/issues/559>`_)
+* package.xml: correct license to a valid SPDX (backport `#552 <https://github.com/ros-controls/realtime_tools/issues/552>`_) (`#555 <https://github.com/ros-controls/realtime_tools/issues/555>`_)
+* Apply CMP0167 also for exported dependencies (backport `#539 <https://github.com/ros-controls/realtime_tools/issues/539>`_) (`#541 <https://github.com/ros-controls/realtime_tools/issues/541>`_)
+* Fix CMP0167 and remove FindBoost (backport `#531 <https://github.com/ros-controls/realtime_tools/issues/531>`_) (`#534 <https://github.com/ros-controls/realtime_tools/issues/534>`_)
+* Contributors: mergify[bot]
 
-5.2.0 (2026-04-02)
+4.8.0 (2026-04-02)
 ------------------
-* Use realtime mutex and also try-lock while setting feedback (`#490 <https://github.com/ros-controls/realtime_tools/issues/490>`_)
-* Use atomic to have lock-free feedback setting from RT loop (`#486 <https://github.com/ros-controls/realtime_tools/issues/486>`_)
-* Update ThreadSafeBox Tests (`#459 <https://github.com/ros-controls/realtime_tools/issues/459>`_)
-* Contributors: Brian Jin, Sai Kishor Kothakota
+* Use realtime mutex and also try-lock while setting feedback (backport `#490 <https://github.com/ros-controls/realtime_tools/issues/490>`_) (`#495 <https://github.com/ros-controls/realtime_tools/issues/495>`_)
+* Use atomic to have lock-free feedback setting from RT loop (backport `#486 <https://github.com/ros-controls/realtime_tools/issues/486>`_) (`#488 <https://github.com/ros-controls/realtime_tools/issues/488>`_)
+* Update ThreadSafeBox Tests (backport `#459 <https://github.com/ros-controls/realtime_tools/issues/459>`_) (`#468 <https://github.com/ros-controls/realtime_tools/issues/468>`_)
+* Contributors: mergify[bot]
 
-5.1.0 (2025-12-01)
+4.7.1 (2025-12-01)
 ------------------
-* Mark `msg\_` variable in RT publisher as private (`#423 <https://github.com/ros-controls/realtime_tools/issues/423>`_)
-* Replace deprecated spin_some in realtime_tools (`#448 <https://github.com/ros-controls/realtime_tools/issues/448>`_)
-* Contributors: Abdullah, Christoph Fröhlich
-
-5.0.0 (2025-10-27)
-------------------
-* Cleanup deprecations (`#371 <https://github.com/ros-controls/realtime_tools/issues/371>`_)
-* Contributors: Christoph Fröhlich
+* Replace deprecated spin_some in realtime_tools (backport `#448 <https://github.com/ros-controls/realtime_tools/issues/448>`_) (`#451 <https://github.com/ros-controls/realtime_tools/issues/451>`_)
+* Contributors: mergify[bot]
 
 4.7.0 (2025-10-06)
 ------------------

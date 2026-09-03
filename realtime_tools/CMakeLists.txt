@@ -39,6 +39,7 @@ endif()
 add_library(realtime_tools SHARED
   src/realtime_helpers.cpp
 )
+target_compile_features(realtime_tools PUBLIC cxx_std_17)
 target_include_directories(realtime_tools PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/realtime_tools>
@@ -58,6 +59,7 @@ endif()
 add_library(thread_priority SHARED
   src/realtime_helpers.cpp
 )
+target_compile_features(thread_priority PUBLIC cxx_std_17)
 target_include_directories(thread_priority PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/realtime_tools>
