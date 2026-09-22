@@ -2,6 +2,11 @@
 Changelog for package realtime_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.10.0 (2026-09-22)
+-------------------
+* Add trySetFeedback for rt access (backport `#586 <https://github.com/ros-controls/realtime_tools/issues/586>`_) (`#589 <https://github.com/ros-controls/realtime_tools/issues/589>`_)
+* Contributors: Christoph Froehlich, mergify[bot]
+
 4.9.0 (2026-09-03)
 ------------------
 * feat: create publisher internally in RealtimePublisher (backport `#573 <https://github.com/ros-controls/realtime_tools/issues/573>`_) (`#575 <https://github.com/ros-controls/realtime_tools/issues/575>`_)
