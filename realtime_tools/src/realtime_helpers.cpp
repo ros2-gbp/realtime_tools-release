@@ -32,10 +32,11 @@
 #include <windows.h>
 #else
 #include <sched.h>
+#if defined(__unix__)
 #include <sys/capability.h>
+#endif
 #include <sys/mman.h>
 #include <sys/utsname.h>
-
 #include <unistd.h>
 #endif
 
@@ -75,6 +76,20 @@ bool configure_sched_fifo(int priority)
 #ifdef _WIN32
   HANDLE thread = GetCurrentThread();
   return SetThreadPriority(thread, priority);
+#elif defined(__APPLE__)
+  // macOS implementation using pthread_setschedparam with SCHED_FIFO
+  pthread_t thread = pthread_self();
+  struct sched_param schedp;
+  memset(&schedp, 0, sizeof(schedp));
+  schedp.sched_priority = priority;
+
+  int policy = SCHED_FIFO;
+  if (pthread_setschedparam(thread, policy, &schedp) == 0) {
+    return true;
+  } else {
+    // Optionally log strerror(errno) for debugging
+    return false;
+  }
 #else
   struct sched_param schedp;
   memset(&schedp, 0, sizeof(schedp));
@@ -83,17 +98,35 @@ bool configure_sched_fifo(int priority)
 #endif
 }
 
-bool lock_memory(std::string & message)
+bool configure_sched_rr(int priority)
 {
-  const auto lock_result = lock_memory();
-  message = lock_result.second;
-  return lock_result.first;
+#ifdef _WIN32
+  (void)priority;
+  std::cerr << "SCHED_RR is not supported on Windows." << std::endl;
+  return false;
+#elif defined(__APPLE__)
+  pthread_t thread = pthread_self();
+  struct sched_param schedp;
+  memset(&schedp, 0, sizeof(schedp));
+  schedp.sched_priority = priority;
+
+  if (pthread_setschedparam(thread, SCHED_RR, &schedp) == 0) {
+    return true;
+  } else {
+    return false;
+  }
+#else
+  struct sched_param schedp;
+  memset(&schedp, 0, sizeof(schedp));
+  schedp.sched_priority = priority;
+  return !sched_setscheduler(0, SCHED_RR, &schedp);
+#endif
 }
 
 std::pair<bool, std::string> lock_memory()
 {
-#ifdef _WIN32
-  return {false, "Memory locking is not supported on Windows."};
+#if defined(_WIN32) || defined(__APPLE__)
+  return {false, "Memory locking is not supported on Windows or macOS."};
 #else
   auto is_capable = [](cap_value_t v) -> bool {
     bool rc = false;
@@ -143,8 +176,8 @@ std::pair<bool, std::string> set_thread_affinity(
   NATIVE_THREAD_HANDLE thread, const std::vector<int> & cores)
 {
   std::string message;
-#ifdef _WIN32
-  message = "Thread affinity is not supported on Windows.";
+#if defined(_WIN32) || defined(__APPLE__)
+  message = "Thread affinity is not supported on Windows or macOS.";
   return std::make_pair(false, message);
 #else
   auto set_affinity_result_message = [](int result, std::string & msg) -> bool {
@@ -242,6 +275,39 @@ std::pair<bool, std::string> set_current_thread_affinity(const std::vector<int> 
   return set_thread_affinity(GetCurrentThread(), cores);
 #else
   return set_thread_affinity(pthread_self(), cores);
+#endif
+}
+
+std::pair<bool, std::string> set_current_thread_name(const std::string & name)
+{
+  if (name.empty()) {
+    return std::make_pair(false, "Thread name cannot be empty. This should not happen!");
+  }
+
+#ifdef _WIN32
+  std::wstring wname(name.begin(), name.end());
+  HRESULT hr = SetThreadDescription(GetCurrentThread(), wname.c_str());
+  if (SUCCEEDED(hr)) {
+    return std::make_pair(true, "Thread name: " + name);
+  }
+  return std::make_pair(false, "Failed to set thread name on Windows.");
+#elif defined(__APPLE__)
+  std::string t_name = name.substr(0, 63);
+  std::string msg =
+    (name.length() > 63) ? "Thread name (truncated): " + t_name : "Thread name: " + t_name;
+  if (pthread_setname_np(t_name.c_str()) == 0) {
+    return std::make_pair(true, msg);
+  }
+  return std::make_pair(false, "Failed to set thread name on macOS.");
+#else
+  std::string t_name = name.substr(0, 15);
+  std::string msg =
+    (name.length() > 15) ? "Thread name (truncated): " + t_name : "Thread name: " + t_name;
+  int rc = pthread_setname_np(pthread_self(), t_name.c_str());
+  if (rc == 0) {
+    return std::make_pair(true, msg);
+  }
+  return std::make_pair(false, "Failed to set thread name. Error code: " + std::to_string(rc));
 #endif
 }
 

@@ -28,12 +28,14 @@
 
 #include <gmock/gmock.h>
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "rclcpp/executors.hpp"
 #include "rclcpp/utilities.hpp"
@@ -76,8 +78,10 @@ struct ActionServerCallbacks
 
   bool wait_for_handle(rclcpp::Node::SharedPtr node)
   {
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
     for (size_t i = 0; i < ATTEMPTS; ++i) {
-      rclcpp::spin_some(node);
+      executor.spin_some();
       std::this_thread::sleep_for(DELAY);
       std::unique_lock<std::mutex> lock(mtx_);
       if (have_handle_) {
@@ -93,11 +97,14 @@ struct ActionClientCallbacks
 {
   bool have_feedback_ = false;
   bool have_result_ = false;
+  std::vector<int32_t> feedback_sequence_;
   std::mutex mtx_;
 
-  void feedback_callback(ClientGoalHandle::SharedPtr, const Fibonacci::Feedback::ConstSharedPtr &)
+  void feedback_callback(
+    ClientGoalHandle::SharedPtr, const Fibonacci::Feedback::ConstSharedPtr & feedback)
   {
     std::unique_lock<std::mutex> lock(mtx_);
+    feedback_sequence_ = feedback->sequence;
     have_feedback_ = true;
   }
 
@@ -109,8 +116,10 @@ struct ActionClientCallbacks
 
   bool wait_for_feedback(rclcpp::Node::SharedPtr node)
   {
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
     for (size_t i = 0; i < ATTEMPTS; ++i) {
-      rclcpp::spin_some(node);
+      executor.spin_some();
       std::this_thread::sleep_for(DELAY);
       std::unique_lock<std::mutex> lock(mtx_);
       if (have_feedback_) {
@@ -120,16 +129,27 @@ struct ActionClientCallbacks
     std::unique_lock<std::mutex> lock(mtx_);
     return have_feedback_;
   }
+
+  std::vector<int32_t> feedback_sequence()
+  {
+    std::unique_lock<std::mutex> lock(mtx_);
+    return feedback_sequence_;
+  }
 };
 
 std::shared_ptr<ClientGoalHandle> send_goal(
   rclcpp::Node::SharedPtr node, std::shared_ptr<rclcpp_action::Client<Fibonacci>> ac,
   const std::string & /*server_name*/, ActionClientCallbacks & client_callbacks)
 {
-  for (size_t i = 0; i < ATTEMPTS && !ac->action_server_is_ready(); ++i) {
-    rclcpp::spin_some(node);
-    std::this_thread::sleep_for(DELAY);
+  {
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(node);
+    for (size_t i = 0; i < ATTEMPTS && !ac->action_server_is_ready(); ++i) {
+      executor.spin_some();
+      std::this_thread::sleep_for(DELAY);
+    }
   }
+
   if (ac->action_server_is_ready()) {
     Fibonacci::Goal goal;
     goal.order = 10;
@@ -229,7 +249,9 @@ TEST(RealtimeServerGoalHandle, set_canceled)
     if (callbacks.handle_->is_canceling()) {
       break;
     }
-    rclcpp::spin_some(node);
+    rclcpp::executors::SingleThreadedExecutor exec;
+    exec.add_node(node);
+    exec.spin_some();
     std::this_thread::sleep_for(DELAY);
   }
 
@@ -303,12 +325,33 @@ TEST(RealtimeServerGoalHandle, send_feedback)
   rt_handle.execute();
   rt_handle.runNonRealtime();
 
-  {
-    auto fb = std::make_shared<Fibonacci::Feedback>();
-    rt_handle.setFeedback(fb);
-    rt_handle.runNonRealtime();
+  std::atomic<bool> update_started = false;
+  std::atomic<bool> finish_update = false;
+  bool update_succeeded = false;
+  std::thread update_thread([&]() {
+    update_succeeded = rt_handle.trySetFeedback([&](Fibonacci::Feedback & feedback) {
+      update_started.store(true);
+      while (!finish_update.load()) {
+        std::this_thread::yield();
+      }
+      feedback.sequence = {1, 1, 2, 3, 5};
+    });
+  });
+
+  while (!update_started.load()) {
+    std::this_thread::yield();
   }
+  bool competing_update_called = false;
+  EXPECT_FALSE(
+    rt_handle.trySetFeedback([&](Fibonacci::Feedback &) { competing_update_called = true; }));
+  EXPECT_FALSE(competing_update_called);
+
+  finish_update.store(true);
+  update_thread.join();
+  EXPECT_TRUE(update_succeeded);
+  rt_handle.runNonRealtime();
 
   EXPECT_TRUE(client_callbacks.wait_for_feedback(node));
+  EXPECT_THAT(client_callbacks.feedback_sequence(), testing::ElementsAre(1, 1, 2, 3, 5));
   rclcpp::shutdown();
 }

@@ -44,7 +44,9 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 
+#include "rclcpp/create_publisher.hpp"
 #include "rclcpp/publisher.hpp"
 
 namespace realtime_tools
@@ -62,8 +64,28 @@ public:
 
   RCLCPP_SMART_PTR_DEFINITIONS(RealtimePublisher<MessageT>)
 
-  /// The msg_ variable contains the data that will get published on the ROS topic.
-  MessageT msg_;
+  /**
+   * \brief Constructor for the realtime publisher that creates the publisher internally
+   *
+   * Starts a dedicated thread for message publishing.
+   * The publishing thread runs the publishingLoop() function to handle message
+   * delivery in a non-realtime context.
+   *
+   * \param node the node (or node interface/pointer) to create the publisher for
+   * \param topic_name the topic name on which we want to publish
+   * \param qos the QoS settings for the publisher
+   * \param options the publisher options
+   */
+  template <typename NodeT>
+  explicit RealtimePublisher(
+    NodeT && node, const std::string & topic_name, const rclcpp::QoS & qos,
+    const rclcpp::PublisherOptions & options = rclcpp::PublisherOptions())
+  {
+    initialize([&]() {
+      return rclcpp::create_publisher<MessageT>(
+        std::forward<NodeT>(node), topic_name, qos, options);
+    });
+  }
 
   /**
    * \brief Constructor for the realtime publisher
@@ -74,26 +96,10 @@ public:
    *
    * \param publisher the ROS publisher to wrap
    */
+  [[deprecated("Use the constructor that creates the publisher internally instead.")]]
   explicit RealtimePublisher(PublisherSharedPtr publisher)
-  : publisher_(publisher), is_running_(false), keep_running_(true), turn_(State::LOOP_NOT_STARTED)
   {
-    thread_ = std::thread(&RealtimePublisher::publishingLoop, this);
-
-    // Wait for the thread to be ready before proceeding
-    // This is important to ensure that the thread is properly initialized and ready to handle
-    // messages before any other operations are performed on the RealtimePublisher instance.
-    while (!thread_.joinable() ||
-           turn_.load(std::memory_order_acquire) == State::LOOP_NOT_STARTED) {
-      std::this_thread::sleep_for(std::chrono::microseconds(100));
-    }
-  }
-
-  [[deprecated(
-    "Use constructor with rclcpp::Publisher<T>::SharedPtr instead - this class does not make sense "
-    "without a real publisher")]]
-  RealtimePublisher()
-  : is_running_(false), keep_running_(false), turn_(State::LOOP_NOT_STARTED)
-  {
+    initialize([&]() { return publisher; });
   }
 
   /// Destructor
@@ -128,74 +134,93 @@ public:
   }
 
   /**
-  * \brief Try to acquire the data lock for non-realtime message publishing
-  *
-  * It first checks if the current state allows non-realtime message publishing (turn_ == REALTIME)
-  * and then attempts to lock
-  *
-  * \return true if the lock was successfully acquired, false otherwise
+   * \brief Check if the realtime publisher is in a state to publish messages
+   * \return true if the publisher is in a state to publish messages
   */
-  bool trylock()
+  bool can_publish() const
   {
-    if (turn_.load(std::memory_order_acquire) == State::REALTIME && msg_mutex_.try_lock()) {
-      return true;
-    } else {
-      return false;
-    }
+    std::unique_lock<std::mutex> lock(msg_mutex_, std::try_to_lock);
+    return can_publish(lock);
   }
 
   /**
-   * \brief Try to get the data lock from realtime and publish the given message
+   * \brief Try to publish the given message
    *
-   * Tries to gain unique access to msg_ variable. If this succeeds
-   * update the msg_ variable and call unlockAndPublish
+   * This method attempts to publish the given message if the publisher is in a state to do so.
+   * It uses a try_lock to avoid blocking if the mutex is already held by another thread.
    *
    * \param [in] msg The message to publish
-   * \return false in case no lock for the realtime variable is acquired. This implies the message will not be published.
+   * \return true if the message was successfully published, false otherwise
    */
-  bool tryPublish(const MessageT & msg)
+  bool try_publish(const MessageT & msg)
   {
-    if (!trylock()) {
-      return false;
+    std::unique_lock<std::mutex> lock(msg_mutex_, std::try_to_lock);
+    if (can_publish(lock)) {
+      {
+        std::unique_lock<std::mutex> scoped_lock(std::move(lock));
+        msg_ = msg;
+        turn_.store(State::NON_REALTIME, std::memory_order_release);
+      }
+      updated_cond_.notify_one();  // Notify the publishing thread
+      return true;
     }
-
-    msg_ = msg;
-    unlockAndPublish();
-    return true;
+    return false;
   }
 
   /**
-   * \brief Unlock the msg_ variable for the non-realtime thread to start publishing
+   * \brief Get the thread object for the publishing thread.
    *
-   * After a successful trylock and after the data is written to the mgs_
-   * variable, the lock has to be released for the message to get
-   * published on the specified topic.
+   * This can be used to set thread properties.
    */
-  void unlockAndPublish()
-  {
-    turn_.store(State::NON_REALTIME, std::memory_order_release);
-    unlock();
-  }
+  std::thread & get_thread() { return thread_; }
 
   /**
-   * \brief Acquire the data lock
+   * \brief Get the thread object for the publishing thread.
    *
-   * This blocking call acquires exclusive access to the msg_ variable.
-   * Use trylock() for non-blocking attempts to acquire the lock.
+   * This can be used to set thread properties.
    */
-  void lock() { msg_mutex_.lock(); }
+  const std::thread & get_thread() const { return thread_; }
 
   /**
-   * \brief Unlocks the data without publishing anything
-   *
+   * \brief Get the mutex protecting the stored message.
    */
-  void unlock()
-  {
-    msg_mutex_.unlock();
-    updated_cond_.notify_one();
-  }
+  std::mutex & get_mutex() { return msg_mutex_; }
+
+  /**
+   * \brief Get the mutex protecting the stored message.
+   */
+  const std::mutex & get_mutex() const { return msg_mutex_; }
 
 private:
+  template <typename PublisherCreator>
+  void initialize(PublisherCreator && creator)
+  {
+    publisher_ = creator();
+    is_running_ = false;
+    keep_running_ = true;
+    turn_ = State::LOOP_NOT_STARTED;
+
+    thread_ = std::thread(&RealtimePublisher::publishingLoop, this);
+
+    // Wait for the thread to be ready before proceeding
+    // This is important to ensure that the thread is properly initialized and ready to handle
+    // messages before any other operations are performed on the RealtimePublisher instance.
+    while (!thread_.joinable() ||
+           turn_.load(std::memory_order_acquire) == State::LOOP_NOT_STARTED) {
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
+    }
+  }
+
+  /**
+   * \brief Check if the realtime publisher is in a state to publish messages
+   * \param lock A unique_lock that is already acquired on the msg_mutex_
+   * \return true if the publisher is in a state to publish messages
+  */
+  bool can_publish(std::unique_lock<std::mutex> & lock) const
+  {
+    return turn_.load(std::memory_order_acquire) == State::REALTIME && lock.owns_lock();
+  }
+
   // non-copyable
   RealtimePublisher(const RealtimePublisher &) = delete;
   RealtimePublisher & operator=(const RealtimePublisher &) = delete;
@@ -242,7 +267,9 @@ private:
 
   std::thread thread_;
 
-  std::mutex msg_mutex_;  // Protects msg_
+  MessageT msg_;
+
+  mutable std::mutex msg_mutex_;  // Protects msg_
   std::condition_variable updated_cond_;
 
   enum class State : int { REALTIME, NON_REALTIME, LOOP_NOT_STARTED };
